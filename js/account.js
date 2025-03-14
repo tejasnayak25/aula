@@ -113,7 +113,7 @@ auth.onAuthStateChanged(async (user) => {
                             let div = document.createElement("div");
                             div.className = "p-1";
                             div.innerHTML = `
-                            <p class="w-full p-2 bg-lime-200 rounded-md flex justify-between items-center">${mem.email}<i class="trash fi fi-sr-trash text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-lg"></i></p>
+                            <p class="w-full p-2 bg-lime-200 rounded-md flex justify-between items-center">${mem.email}${data.creator === user.email ? `<i class="trash fi fi-sr-trash text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-lg"></i>` : ""}</p>
                             `;
     
                             div.querySelector(".trash").onclick = async () => {
@@ -131,22 +131,26 @@ auth.onAuthStateChanged(async (user) => {
                             document.getElementById(`${mem.role}-list`).append(div);
                         });
                     }
-        
-                    document.getElementById("add-mem-btn").onclick = () => {
-                        document.getElementById("add-mem-win").classList.replace("hidden", "flex");
-                    }
-        
-                    document.getElementById("mem-close").onclick = () => {
-                        document.getElementById("add-mem-win").classList.replace("flex", "hidden");
-                    }
-        
-                    document.getElementById("add-mem").onclick = async () => {
-                        let email = document.getElementById("email").value;
-                        let role = document.getElementById("role").value;
-                        await updateDoc(d, {
-                            members: arrayUnion({email, role})
-                        });
-                        location.reload();
+
+                    if(data.creator !== user.email) {
+                        document.getElementById("add-mem-btn").classList.add("hidden");
+                    } else {
+                        document.getElementById("add-mem-btn").onclick = () => {
+                            document.getElementById("add-mem-win").classList.replace("hidden", "flex");
+                        }
+            
+                        document.getElementById("mem-close").onclick = () => {
+                            document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+                        }
+            
+                        document.getElementById("add-mem").onclick = async () => {
+                            let email = document.getElementById("email").value;
+                            let role = document.getElementById("role").value;
+                            await updateDoc(d, {
+                                members: arrayUnion({email, role})
+                            });
+                            location.reload();
+                        }
                     }
                 } else if(path === "details") {
                     document.getElementById("detailsHolder").classList.replace("hidden", "flex");
@@ -240,6 +244,14 @@ auth.onAuthStateChanged(async (user) => {
                         }
                     }
                 } else if(path === "quizzes") {
+                    document.getElementById("quizzesHolder").classList.replace("hidden", "flex");
+
+                    if(data.creator === user.email || currentMem.role === "teacher") {
+                        document.getElementById("quizzesHolder").querySelector(".teach").classList.replace("hidden", "flex");
+                    } else {
+                        document.getElementById("quizzesHolder").querySelector(".student").classList.replace("hidden", "flex");
+                    }
+
                     const updatesRef = collection(d, "quizzes");
                     const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
 

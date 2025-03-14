@@ -18,7 +18,7 @@
     <div class=" flex flex-col w-full flex-1">
         <div id="mini-menu" class="p-3 overflow-x-auto flex flex-nowrap justify-center gap-5 list-none">
             <a href="?section=updates" id="updates" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Updates</a>
-            <a href="?section=quizzes" id="updates" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Quizzes</a>
+            <a href="?section=quizzes" id="quizzes" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Quizzes</a>
             <a href="?section=members" id="members" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Members</a>
             <a href="?section=details" id="details" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Details</a>
         </div>
@@ -70,6 +70,32 @@
                 <div class="absolute left-0 top-0 size-full pattern-diagonal-lines pattern-red-500 pattern-bg-lime-100 pattern-size-6 pattern-opacity-20"></div>
                 <div class="flex justify-center relative">
                     <button id="leave-class" class=" flex justify-center font-semibold  btn btn-error rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-exit"></i><span id="leave-message">Leave</span> Classroom</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="quizzesHolder" class="hidden flex-col">
+            <div class="teach hidden gap-5 flex-nowrap overflow-x-auto md:p-8 p-4">
+                <!-- <button id="new-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10 mb-10"><i class=" fi fi-sr-plus"></i>New Quiz</button> -->
+                <div class=" border-2 border-dashed border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex justify-center items-center gap-2">
+                    <i class=" fi fi-sr-plus text-xl"></i>
+                    <p>New Quiz</p>
+                </div>
+
+                <div class=" border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex flex-col justify-center items-center gap-2">
+                    <p class="w-full border-b border-lime-900 pb-4 mb-2">Quiz 1</p>
+                    <button id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</button>
+                </div>
+            </div>
+
+            <div class="student hidden flex-col md:p-8 p-4">
+                <p class="w-full border-b border-lime-900 pb-4 mb-2">Quizzes</p>
+                <div class=" flex gap-5 flex-wrap overflow-y-auto md:justify-center justify-start">
+                    <div class=" border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-70 flex flex-col justify-center items-center gap-2">
+                        <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">Quiz 1</p>
+                        <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">13/12/2025</span></p>
+                        <button id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>Attempt</button>
+                    </div>
                 </div>
             </div>
         </div>

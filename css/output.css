@@ -2650,6 +2650,12 @@
       color: var(--color-black);
     }
   }
+  .disabled\:btn-error {
+    &:disabled {
+      --btn-color: var(--color-error);
+      --btn-fg: var(--color-error-content);
+    }
+  }
   .sm\:mx-auto {
     @media (width >= 40rem) {
       margin-inline: auto;

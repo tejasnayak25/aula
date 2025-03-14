@@ -172,6 +172,21 @@ class Radio {
                     host.remove();
                     ondelete();
                 }
+            } else {
+                if(type === "radio") {
+                    host.querySelector(".data").innerHTML = `
+                        ${ getRadio(data, id, false) }
+                        ${ debug ? `<p id="add-opt" class="text-sm flex justify-start items-center gap-3 btn btn-ghost hover:bg-transparent shadow-none border-0 p-0 hover:text-slate-800"><i class="fi fi-sr-plus"></i> Add Option</p>` : "" }
+                    `;
+                } else if(type === "text") {
+                    host.querySelector(".data").innerHTML = `
+                        <input type="text" id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..." />
+                    `;
+                } else if(type === "textarea") {
+                    host.querySelector(".data").innerHTML = `
+                        <textarea id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..."></textarea>
+                    `;
+                }
             }
 
 

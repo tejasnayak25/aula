@@ -293,6 +293,59 @@ auth.onAuthStateChanged(async (user) => {
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
+            let results = [];
+
+            document.getElementById("results-btn").onclick = () => {
+                document.getElementById("results-win").classList.replace("hidden", "flex");
+
+                let table = document.getElementById("res-table");
+                let head = table.firstElementChild;
+                table.innerHTML = "";
+                table.append(head);
+
+                const updatesRef = collection(d, "quizzes", formid, "responses");
+                const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
+
+                getDocs(updatesQuery).then(vals => {
+                    let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
+                    results = [];
+
+                    quiz.forEach(i => {
+                        let marks = 0;
+                        i.fields.forEach(j => {
+                            marks += j.marks;
+                        });
+                        results.push({user:i.creator, marks: marks});
+
+                        let tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${i.creator}</td>
+                            <td>${marks}</td>
+                        `;
+
+                        table.append(tr);
+                    });
+                });
+
+            }
+
+            document.getElementById("download-csv").onclick = () => {
+                let text = "Email Score\n";
+                results.forEach(r => {
+                    text += `${r.user} ${r.marks}\n`;
+                });
+                let blob = new Blob([text], { type: "application/csv" });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                a.href = url;
+                a.download = `${f.name}.csv`;
+                a.click();
+            }
+
+            document.getElementById("res-close").onclick = () => {
+                document.getElementById("results-win").classList.replace("flex", "hidden");
+            }
+
             let deadline = null;
 
             document.getElementById("add-mem").onclick = async () => {

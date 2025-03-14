@@ -521,14 +521,14 @@ auth.onAuthStateChanged(async (user) => {
                         quiz.forEach(u => {
                             let div = document.createElement("div");
                             div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-70 flex flex-col justify-center items-center gap-2";
-                            // let date = formatFirebaseTimestamp(u.createdAt);
+                            let date = u.deadline ? formatFirebaseTimestamp(u.deadline) : null;
 
                             let attemped = u.responses ? u.responses.find(i => i===user.email) : false;
                             div.innerHTML= `
                                 <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">${u.name ?? "Quiz 1"}</p>
-                                <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">13/12/2025</span></p>
+                                <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">${date ?? ""}</span></p>
                                 <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} ${u.deadline && Date.now() > u.deadline ? "disabled" : ""} id="edit-quiz-btn" class=" ${attemped ? "hidden" : "flex"} ${u.deadline && Date.now() > u.deadline ? "hidden" : "flex"} justify-center font-semibold  btn btn-success rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</a>
-                                <button class=" ${attemped ? "flex" : "hidden"} ${u.deadline && Date.now() > u.deadline ? "flex" : "hidden"} justify-center font-semibold  btn btn-error rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</button>
+                                <button class=" ${(u.deadline && Date.now() > u.deadline) || attempted ? "flex" : "hidden"} justify-center font-semibold  btn btn-error rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</button>
                             `;
 
                             if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {

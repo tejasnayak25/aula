@@ -65,7 +65,7 @@ function getRadio(opts, id, debug) {
 }
 
 class Radio {
-    constructor({ label, id, type, data = null, debug = false, onchange = (e, input) => {}, ondelete = () => {} }) {
+    constructor({ label, id, required = false, type, data = null, debug = false, onchange = (e, input) => {}, ondelete = () => {} }) {
         let div = new HTMLNode({
             tagName: "div",
             attributes: {
@@ -78,7 +78,7 @@ class Radio {
 
         div.innerHTML = `
                 <div class="flex items-center justify-between">
-                    <p class="question text-base  p-3 " ${debug ? `contenteditable=""` : ""}>${label}</p>
+                    <p class="question text-base  p-3 " ${debug ? `contenteditable=""` : ""}>${label} ${required ? "*" : ""}</p>
                     ${debug ? `
                     <select id="type-choose" class="select bg-transparent outline-lime-300 border-lime-300 ring-lime-300 border-2">
                         <option value="text">Short Text</option>
@@ -114,7 +114,6 @@ class Radio {
         `;
 
         div.onappend = () => {
-            let input = document.getElementById(id).querySelector(`.data input[type=${type}]`);
 
             if(debug) {
                 if(type === "radio") {
@@ -174,7 +173,9 @@ class Radio {
                 }
             } else {
                 let host = document.getElementById(id);
-                
+
+                console.log(data);
+
                 if(type === "radio") {
                     host.querySelector(".data").innerHTML = `
                         ${ getRadio(data, id, false) }

@@ -178,6 +178,7 @@ auth.onAuthStateChanged(async (user) => {
                     type: g.type,
                     debug: false,
                     data: g.data,
+                    required: g.required,
                     onchange: (e, input) => {
     
                     },

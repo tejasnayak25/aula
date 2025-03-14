@@ -99,7 +99,7 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById("add-mem").onclick = async () => {
                 await addDoc(collection(firestore, "classrooms"), {
                     name: document.getElementById("name").value,
-                    description: document.getElementById("name").desc,
+                    description: document.getElementById("desc").value,
                     creator: user.email,
                     members: []
                 });

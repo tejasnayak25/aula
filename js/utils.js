@@ -173,6 +173,8 @@ class Radio {
                     ondelete();
                 }
             } else {
+                let host = document.getElementById(id);
+                
                 if(type === "radio") {
                     host.querySelector(".data").innerHTML = `
                         ${ getRadio(data, id, false) }

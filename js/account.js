@@ -165,7 +165,7 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
 
-            f.forEach(g => {
+            f.fields.forEach(g => {
                 let radio = new Radio({
                     label: g.question,
                     id: g.id,

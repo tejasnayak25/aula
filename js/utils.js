@@ -174,11 +174,11 @@ class Radio {
             } else {
                 let host = document.getElementById(id);
 
-                console.log(data);
-
                 if(type === "radio") {
+                    let d = getRadio(data, id, false);
+                    console.log(d);
                     host.querySelector(".data").innerHTML = `
-                        ${ getRadio(data, id, false) }
+                        ${ d }
                         ${ debug ? `<p id="add-opt" class="text-sm flex justify-start items-center gap-3 btn btn-ghost hover:bg-transparent shadow-none border-0 p-0 hover:text-slate-800"><i class="fi fi-sr-plus"></i> Add Option</p>` : "" }
                     `;
                 } else if(type === "text") {

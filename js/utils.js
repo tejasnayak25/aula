@@ -175,9 +175,9 @@ class Radio {
             }
 
 
-            input.onchange = (e) => {
-                onchange(e, input);
-            }
+            // input.onchange = (e) => {
+            //     onchange(e, input);
+            // }
         }
 
         return div;

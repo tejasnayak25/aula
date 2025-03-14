@@ -44,7 +44,7 @@ class HTMLNode {
     }
 }
 
-function getRadio(opts, debug) {
+function getRadio(opts, id, debug) {
     let html = "";
 
     if(!opts && debug) {
@@ -56,8 +56,8 @@ function getRadio(opts, debug) {
     opts.forEach(opt => {
         html += `
         <div class="flex items-center mb-6">
-            <input checked id="option-1" type="radio" value="" name="default-radio" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
-            <label ${debug ? `contenteditable=""` : ""} for="default-radio-1" class="ms-2 text-sm font-medium">${opt}</label>
+            <input checked id="${id}-response" type="radio" value="" name="${id}-response" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
+            <label ${debug ? `contenteditable=""` : ""} for="${id}-response" class="ms-2 text-sm font-medium">${opt}</label>
         </div>
     `;
     });
@@ -146,16 +146,16 @@ class Radio {
 
                     if(val === "radio") {
                         host.querySelector(".data").innerHTML = `
-                            ${ getRadio(data, debug) }
+                            ${ getRadio(data, id, debug) }
                             ${ debug ? `<p id="add-opt" class="text-sm flex justify-start items-center gap-3 btn btn-ghost hover:bg-transparent shadow-none border-0 p-0 hover:text-slate-800"><i class="fi fi-sr-plus"></i> Add Option</p>` : "" }
                         `;
                     } else if(val === "text") {
                         host.querySelector(".data").innerHTML = `
-                            <input type="text" id="class-code" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..." />
+                            <input type="text" id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..." />
                         `;
                     } else if(val === "textarea") {
                         host.querySelector(".data").innerHTML = `
-                            <textarea id="class-code" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..."></textarea>
+                            <textarea id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..."></textarea>
                         `;
                     }
 

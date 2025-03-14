@@ -146,8 +146,11 @@ auth.onAuthStateChanged(async (user) => {
                 }));
 
                 await addDoc(collection(d, "quizzes"), {
+                    name: document.getElementById("qname").innerText,
+                    description: document.getElementById("qdesc").innerText,
                     creator: user.email,
-                    fields: fields
+                    fields: fields,
+                    createdAt: serverTimestamp()
                 });
             }
             return;
@@ -165,6 +168,9 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
 
+            document.getElementById(qname).innerText = f.name ?? "Quiz";
+            document.getElementById(qdesc).innerText = f.description ?? "";
+
             f.fields.forEach(g => {
                 let radio = new Radio({
                     label: g.question,
@@ -175,7 +181,7 @@ auth.onAuthStateChanged(async (user) => {
     
                     },
                     ondelete: () => {
-                        inps.splice(0, 1);
+                        // inps.splice(0, 1);
                     }
                 });
     
@@ -185,19 +191,17 @@ auth.onAuthStateChanged(async (user) => {
                 radio._onappend();
             });
 
-            document.getElementById("create-form").onclick = async () => {
+            document.getElementById("submit-form").onclick = async () => {
                 let fields = inps.map(i => ({
                     ...i.props,
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
-                    data: i.props.type === "radio"
-                        ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
-                            option.nextElementSibling.innerText)
-                        : []
+                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value
                 }));
 
-                await addDoc(collection(d, "quizzes"), {
+                await addDoc(collection(d, "quizzes", formid, "responses"), {
                     creator: user.email,
-                    fields: fields
+                    fields: fields,
+                    createdAt: serverTimestamp()
                 });
             }
             return;

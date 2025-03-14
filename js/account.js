@@ -116,13 +116,15 @@ auth.onAuthStateChanged(async (user) => {
                             <p class="w-full p-2 bg-lime-200 rounded-md flex justify-between items-center">${mem.email}${data.creator === user.email ? `<i class="trash fi fi-sr-trash text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-lg"></i>` : ""}</p>
                             `;
     
-                            div.querySelector(".trash").onclick = async () => {
-                                if(confirm(`Are you sure you want to remove user '${mem.email}' ?`)) {
-                                    await updateDoc(d, {
-                                        members: arrayRemove({email: mem.email, role: mem.role})
-                                    });
-    
-                                    location.reload();
+                            if(data.creator === user.email) {
+                                div.querySelector(".trash").onclick = async () => {
+                                    if(confirm(`Are you sure you want to remove user '${mem.email}' ?`)) {
+                                        await updateDoc(d, {
+                                            members: arrayRemove({email: mem.email, role: mem.role})
+                                        });
+        
+                                        location.reload();
+                                    }
                                 }
                             }
     

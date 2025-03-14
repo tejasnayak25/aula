@@ -1546,6 +1546,9 @@
   .mt-3 {
     margin-top: calc(var(--spacing) * 3);
   }
+  .mt-4 {
+    margin-top: calc(var(--spacing) * 4);
+  }
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
@@ -2624,9 +2627,19 @@
       border-color: var(--color-gray-500);
     }
   }
+  .disabled\:border-gray-700 {
+    &:disabled {
+      border-color: var(--color-gray-700);
+    }
+  }
   .disabled\:bg-gray-500 {
     &:disabled {
       background-color: var(--color-gray-500);
+    }
+  }
+  .disabled\:bg-gray-700 {
+    &:disabled {
+      background-color: var(--color-gray-700);
     }
   }
   .disabled\:text-black {

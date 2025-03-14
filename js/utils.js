@@ -99,7 +99,7 @@ class Radio {
                             <p>Required</p>
                             
                             <label class="inline-flex items-center cursor-pointer">
-                                <input id="inp-required" type="checkbox" value="" class="sr-only peer">
+                                <input ${required ? "checked" : ""} id="inp-required" type="checkbox" value="" class="sr-only peer">
                                 <div class="relative w-11 h-6 bg-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-lime-300 dark:peer-focus:ring-lime-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-lime-200 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lime-300"></div>
                             </label>
                         </div>
@@ -116,6 +116,25 @@ class Radio {
         `;
 
         div.onappend = () => {
+
+            let host = document.getElementById(id);
+
+            if(type === "radio") {
+                let d = getRadio(data, id, false);
+                
+                host.querySelector(".data").innerHTML = `
+                    ${ d }
+                    ${ debug ? `<p id="add-opt" class="text-sm flex justify-start items-center gap-3 btn btn-ghost hover:bg-transparent shadow-none border-0 p-0 hover:text-slate-800"><i class="fi fi-sr-plus"></i> Add Option</p>` : "" }
+                `;
+            } else if(type === "text") {
+                host.querySelector(".data").innerHTML = `
+                    <input type="text" id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..." />
+                `;
+            } else if(type === "textarea") {
+                host.querySelector(".data").innerHTML = `
+                    <textarea id="${id}-response" class="bg-transparent border-1 w-full focus:border-2 border-lime-300 text-gray-900 text-sm rounded-lg block p-2.5 outline-0 mb-4" placeholder="Enter something..."></textarea>
+                `;
+            }
 
             if(debug) {
                 if(type === "radio") {

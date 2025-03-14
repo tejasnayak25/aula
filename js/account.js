@@ -135,6 +135,22 @@ auth.onAuthStateChanged(async (user) => {
                 radio._onappend();
             }
 
+            document.getElementById("settings-btn").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("hidden", "flex");
+            }
+
+            document.getElementById("mem-close").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+            }
+
+            let deadline = null;
+
+            document.getElementById("add-mem").onclick = async () => {
+                let val = document.getElementById("datetime").value;
+                deadline = Date.parse(val);
+                document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+            }
+
             document.getElementById("create-form").onclick = async () => {
                 let fields = inps.map(i => ({
                     ...i.props,
@@ -145,12 +161,17 @@ auth.onAuthStateChanged(async (user) => {
                         : []
                 }));
 
+                let setdata = {};
+
+                if(deadline) setdata.deadline = deadline;
+
                 await addDoc(collection(d, "quizzes"), {
                     name: document.getElementById("qname").innerText,
                     description: document.getElementById("qdesc").innerText,
                     creator: user.email,
                     fields: fields,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    ...setdata
                 });
 
                 window.open(`/classroom/${classid}?section=quizzes`, "_self");
@@ -195,6 +216,12 @@ auth.onAuthStateChanged(async (user) => {
                 radio._onappend();
             });
 
+            document.body.requestFullscreen();
+
+            window.onblur = () => {
+                document.getElementById("submit-form").click();
+            }
+
             document.getElementById("submit-form").onclick = async () => {
                 let fields = inps.map(i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
@@ -209,6 +236,87 @@ auth.onAuthStateChanged(async (user) => {
 
                 await updateDoc(doc(d, "quizzes", formid), {
                     responses: arrayUnion(user.email)
+                });
+
+                window.open(`/classroom/${classid}?section=quizzes`, "_self");
+            }
+            return;
+        }
+        if(location.pathname.includes("/edit-quiz/")) {
+            const pathSegments = window.location.pathname.split("/");
+            const classid = pathSegments[2];
+            let d = doc(firestore, "classrooms", classid);
+
+            let formid = pathSegments[4];
+
+            let f = await getDoc(doc(d, "quizzes", formid));
+
+            f = { id: f.id, ...f.data() };
+
+            let inps = [];
+
+            document.getElementById("qname").innerText = f.name ?? "Quiz";
+            document.getElementById("qdesc").innerText = f.description ?? "";
+
+            f.fields.forEach(g => {
+                let radio = new Radio({
+                    label: g.question,
+                    id: g.id,
+                    type: g.type,
+                    debug: true,
+                    data: g.data,
+                    required: g.required,
+                    onchange: (e, input) => {
+    
+                    },
+                    ondelete: () => {
+                        // inps.splice(0, 1);
+                    }
+                });
+    
+                inps.push(radio);
+    
+                document.getElementById("questions").append(radio.element);
+                radio._onappend();
+            });
+
+            document.getElementById("settings-btn").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("hidden", "flex");
+            }
+
+            document.getElementById("mem-close").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+            }
+
+            let deadline = null;
+
+            document.getElementById("add-mem").onclick = async () => {
+                let val = document.getElementById("datetime").value;
+                deadline = Date.parse(val);
+                document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+            }
+
+            document.getElementById("create-form").onclick = async () => {
+                let fields = inps.map(i => ({
+                    ...i.props,
+                    question: document.getElementById(i.props.id).querySelector(".question").innerText,
+                    data: i.props.type === "radio"
+                        ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
+                            option.nextElementSibling.innerText)
+                        : []
+                }));
+
+                let setdata = {};
+
+                if(deadline) setdata.deadline = deadline;
+
+                await updateDoc(doc(d, "quizzes", formid), {
+                    name: document.getElementById("qname").innerText,
+                    description: document.getElementById("qdesc").innerText,
+                    creator: user.email,
+                    fields: fields,
+                    createdAt: serverTimestamp(),
+                    ...setdata
                 });
 
                 window.open(`/classroom/${classid}?section=quizzes`, "_self");
@@ -419,14 +527,14 @@ auth.onAuthStateChanged(async (user) => {
                             div.innerHTML= `
                                 <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">${u.name ?? "Quiz 1"}</p>
                                 <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">13/12/2025</span></p>
-                                <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success disabled:bg-gray-500 disabled:text-black disabled:border-2 disabled:border-gray-500 rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>Attempt${attemped ? "ed" : ""}</a>
+                                <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} ${u.deadline && Date.now() > u.deadline ? "disabled" : ""} id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success disabled:bg-gray-700 disabled:text-black disabled:border-2 disabled:border-gray-700 rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</a>
                             `;
 
                             if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {
                                 div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex flex-col justify-center items-center gap-2";
                                 div.innerHTML = `
                                     <p class="w-full border-b border-lime-900 pb-4 mb-2">${u.name ?? "Quiz 1"}</p>
-                                    <button id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</button>
+                                    <a href="/classroom/${classid}/edit-quiz/${u.id}" id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</a>
                                 `;
 
                                 // div.querySelector(".post-delete").onclick = async () => {

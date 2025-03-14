@@ -2619,6 +2619,12 @@
       outline-style: none;
     }
   }
+  .enabled\:btn-success {
+    &:enabled {
+      --btn-color: var(--color-success);
+      --btn-fg: var(--color-success-content);
+    }
+  }
   .disabled\:border-2 {
     &:disabled {
       border-style: var(--tw-border-style);

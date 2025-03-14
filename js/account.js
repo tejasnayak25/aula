@@ -527,7 +527,8 @@ auth.onAuthStateChanged(async (user) => {
                             div.innerHTML= `
                                 <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">${u.name ?? "Quiz 1"}</p>
                                 <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">13/12/2025</span></p>
-                                <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} ${u.deadline && Date.now() > u.deadline ? "disabled" : ""} id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success disabled:btn-error disabled:bg-gray-700 disabled:text-black disabled:border-2 disabled:border-gray-700 rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</a>
+                                <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} ${u.deadline && Date.now() > u.deadline ? "disabled" : ""} id="edit-quiz-btn" class=" ${attemped ? "hidden" : "flex"} ${u.deadline && Date.now() > u.deadline ? "hidden" : "flex"} justify-center font-semibold  btn btn-success rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</a>
+                                <button id="edit-quiz-btn" class=" ${attemped ? "flex" : "hidden"} ${u.deadline && Date.now() > u.deadline ? "flex" : "hidden"} justify-center font-semibold  btn btn-error rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</button>
                             `;
 
                             if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {

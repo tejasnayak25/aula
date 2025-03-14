@@ -67,7 +67,7 @@ function getRadio(opts, id, debug) {
 }
 
 class Radio {
-    constructor({ label, id, required = false, type, data = null, debug = false, onchange = (e, input) => {}, ondelete = () => {} }) {
+    constructor({ label, id, required = false, type, data = null, debug = false, marks= 0, onchange = (e, input) => {}, ondelete = () => {} }) {
         let div = new HTMLNode({
             tagName: "div",
             attributes: {
@@ -76,7 +76,7 @@ class Radio {
             }
         });
 
-        div.props = { question: label, type: type, id };
+        div.props = { question: label, type: type, id, marks };
 
         div.innerHTML = `
                 <div class="flex items-center justify-between">
@@ -94,21 +94,30 @@ class Radio {
                 </div>
                 ${
                     debug ? `
-                    <div class=" flex p-3 gap-3 justify-end">
-                        <div class=" flex justify-between items-center gap-3 px-3 border-r-1 border-lime-400">
-                            <p>Required</p>
-                            
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input ${required ? "checked" : ""} id="inp-required" type="checkbox" value="" class="sr-only peer">
-                                <div class="relative w-11 h-6 bg-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-lime-300 dark:peer-focus:ring-lime-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-lime-200 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lime-300"></div>
-                            </label>
+                    <div class=" flex p-3 gap-3 justify-between">
+                        <div class=" flex justify-between items-center gap-3 px-3 border-r-0 border-lime-400">
+                                <p>Marks</p>
+                                
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input  id="inp-marks" type="number" value="${marks}" class=" peer input bg-transparent text-lime-800 border-2 border-lime-300">
+                                </label>
                         </div>
+                        <div class="flex gap-3">
+                            <div class=" flex justify-between items-center gap-3 px-3 border-r-1 border-lime-400">
+                                <p>Required</p>
+                                
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input ${required ? "checked" : ""} id="inp-required" type="checkbox" value="" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-lime-300 dark:peer-focus:ring-lime-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-lime-200 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lime-300"></div>
+                                </label>
+                            </div>
 
-                        <div class=" pl-3 border-r-0 border-lime-400">
-                            <i class=" fi fi-br-copy-alt text-lime-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-lime-600 text-xl"></i>
-                        </div>
-                        <div class=" px-3 border-r-0 border-lime-400">
-                            <i id="delete" class=" fi fi-sr-trash text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-xl"></i>
+                            <div class=" pl-3 border-r-0 border-lime-400">
+                                <i class=" fi fi-br-copy-alt text-lime-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-lime-600 text-xl"></i>
+                            </div>
+                            <div class=" px-3 border-r-0 border-lime-400">
+                                <i id="delete" class=" fi fi-sr-trash text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-xl"></i>
+                            </div>
                         </div>
                     </div>
                     ` : ""
@@ -183,9 +192,14 @@ class Radio {
                 }
 
                 div.props.required = false;
+                div.props.marks = 0;
 
                 host.querySelector("#inp-required").onchange = () => {
                     div.props.required = host.querySelector("#inp-required").checked;
+                }
+
+                host.querySelector("#inp-marks").onchange = () => {
+                    div.props.marks = host.querySelector("#inp-marks").value;
                 }
 
                 host.querySelector("#delete").onclick = () => {

@@ -158,7 +158,8 @@ auth.onAuthStateChanged(async (user) => {
                     data: i.props.type === "radio"
                         ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
                             option.nextElementSibling.innerText)
-                        : []
+                        : [],
+                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value)
                 }));
 
                 let setdata = {};
@@ -202,6 +203,7 @@ auth.onAuthStateChanged(async (user) => {
                     debug: false,
                     data: g.data,
                     required: g.required,
+                    marks: g.marks,
                     onchange: (e, input) => {
     
                     },
@@ -209,6 +211,8 @@ auth.onAuthStateChanged(async (user) => {
                         // inps.splice(0, 1);
                     }
                 });
+
+                radio.response = g.response;
     
                 inps.push(radio);
     
@@ -225,7 +229,8 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById("submit-form").onclick = async () => {
                 let fields = inps.map(i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
-                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value)
+                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
+                    marks: compare(i.response, i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value), i.props.marks)
                 }));
 
                 await addDoc(collection(d, "quizzes", formid, "responses"), {
@@ -303,7 +308,8 @@ auth.onAuthStateChanged(async (user) => {
                     data: i.props.type === "radio"
                         ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
                             option.nextElementSibling.innerText)
-                        : []
+                        : [],
+                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value)
                 }));
 
                 let setdata = {};
@@ -522,7 +528,6 @@ auth.onAuthStateChanged(async (user) => {
                             let div = document.createElement("div");
                             div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full h-70 flex flex-col justify-center items-center gap-2";
                             let date = u.deadline ? formatTimestamp(u.deadline) : null;
-                            
 
                             let attemped = u.responses ? u.responses.find(i => i===user.email) : false;
                             div.innerHTML= `
@@ -583,4 +588,28 @@ function formatTimestamp(timestamp) {
     const year = date.getFullYear();
     
     return `${day}/${month}/${year}`;
+}
+
+function compare(res, ans, marks) {
+    return levenshteinDistance(ans, res) * marks;
+}
+
+function levenshteinDistance(a, b) {
+    const dp = Array(a.length + 1).fill(null).map(() =>
+        Array(b.length + 1).fill(null));
+
+    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1, 
+                dp[i][j - 1] + 1, 
+                dp[i - 1][j - 1] + cost 
+            );
+        }
+    }
+    return dp[a.length][b.length];
 }

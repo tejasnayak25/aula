@@ -220,7 +220,10 @@ auth.onAuthStateChanged(async (user) => {
                 radio._onappend();
             });
 
-            document.body.requestFullscreen();
+            document.onclick = () => {
+                document.body.requestFullscreen();
+                document.onclick = () => {}
+            }
 
             window.onblur = () => {
                 document.getElementById("submit-form").click();

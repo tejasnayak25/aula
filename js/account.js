@@ -87,6 +87,25 @@ auth.onAuthStateChanged(async (user) => {
             }).catch((error) => {
                 console.error("Error fetching classrooms:", error);
             });
+
+            document.getElementById("add-class-btn").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("hidden", "flex");
+            }
+
+            document.getElementById("mem-close").onclick = () => {
+                document.getElementById("add-mem-win").classList.replace("flex", "hidden");
+            }
+
+            document.getElementById("add-mem").onclick = async () => {
+                await addDoc(collection(firestore, classrooms), {
+                    name: document.getElementById("name").value,
+                    description: document.getElementById("name").desc,
+                    creator: user.email,
+                    members: []
+                });
+
+                location.reload();
+            }
         }
 
         if(location.pathname.endsWith("/new-quiz")) {

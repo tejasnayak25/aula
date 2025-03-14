@@ -152,6 +152,8 @@ auth.onAuthStateChanged(async (user) => {
                     fields: fields,
                     createdAt: serverTimestamp()
                 });
+
+                window.open(`/classroom/${classid}?section=quizzes`, "_self");
             }
             return;
         }

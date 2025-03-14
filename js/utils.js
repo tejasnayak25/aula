@@ -58,8 +58,8 @@ function getRadio(opts, id, debug) {
     opts.forEach(opt => {
         html += `
         <div class="flex items-center mb-6">
-            <input checked id="${id}-response" type="radio" value="" name="${id}-response" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
-            <label ${debug ? `contenteditable=""` : ""} for="${id}-response" class="ms-2 text-sm font-medium">${opt}</label>
+            <input checked id="${id}-response-${Date.now()}" type="radio" value="" name="${id}-response" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
+            <label ${debug ? `contenteditable=""` : ""} for="${id}-response-${Date.now()}" class="ms-2 text-sm font-medium">${opt}</label>
         </div>
     `;
     });
@@ -125,8 +125,8 @@ class Radio {
                         let div = document.createElement("div");
                         div.className = "flex items-center mb-6 relative max-w-48";
                         div.innerHTML = `
-                            <input checked id="option-1" type="radio" value="" name="default-radio" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
-                            <label ${debug ? `contenteditable=""` : ""} for="default-radio-1" class="ms-2 text-sm font-medium">New Option</label>
+                            <input checked id="${id}-response-${Date.now()}" type="radio" value="" name="${id}-response" class="w-4 h-4  radio text-lime-600 bg-lime-100 border-lime-300 focus:ring-lime-500 focus:ring-2">
+                            <label ${debug ? `contenteditable=""` : ""} for="${id}-response-${Date.now()}" class="ms-2 text-sm font-medium">New Option</label>
                             ${debug ? `<i class=" absolute right-3 fi fi-sr-cross text-red-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-red-600 text-sm"></i>` : ""}
                         `;
 

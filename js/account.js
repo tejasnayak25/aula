@@ -177,6 +177,7 @@ auth.onAuthStateChanged(async (user) => {
                     id: g.id,
                     type: g.type,
                     debug: false,
+                    data: g.data,
                     onchange: (e, input) => {
     
                     },

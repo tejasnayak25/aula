@@ -207,7 +207,7 @@ auth.onAuthStateChanged(async (user) => {
                     createdAt: serverTimestamp()
                 });
 
-                await updateDoc(collection(d, "quizzes", formid), {
+                await updateDoc(doc(d, "quizzes", formid), {
                     responses: arrayUnion(user.email)
                 });
 

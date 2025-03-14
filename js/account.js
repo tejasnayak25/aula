@@ -19,6 +19,33 @@ const firestore = getFirestore();
 
 let isDashboard = location.pathname === "/dashboard";
 
+async function getClassrooms(user) {
+    const classroomsRef = collection(firestore, "classrooms");
+
+    const creatorQuery = query(classroomsRef, where("creator", "==", user.email));
+
+    // Query classrooms where the user is a student
+    const studentQuery = query(classroomsRef, where("members", "array-contains", { email: user.email, role: "student" }));
+
+    // Query classrooms where the user is a teacher
+    const teacherQuery = query(classroomsRef, where("members", "array-contains", { email: user.email, role: "teacher" }));
+
+    // Fetch both queries in parallel
+    const [studentSnapshot, teacherSnapshot] = await Promise.all([
+        getDocs(creatorQuery),
+        getDocs(studentQuery),
+        getDocs(teacherQuery),
+    ]);
+
+    // Merge results while avoiding duplicates
+    const classrooms = new Map();
+
+    studentSnapshot.forEach((doc) => classrooms.set(doc.id, { id: doc.id, ...doc.data() }));
+    teacherSnapshot.forEach((doc) => classrooms.set(doc.id, { id: doc.id, ...doc.data() }));
+
+    return Array.from(classrooms.values());
+}
+
 auth.onAuthStateChanged(async (user) => {
     if(!user) {
         if(location.pathname !== "/login" && location.pathname !== "/signup")
@@ -34,19 +61,11 @@ auth.onAuthStateChanged(async (user) => {
         if(isDashboard) {
             let classrooms = [];
             
-            const classroomsQuery = query(
-                collection(firestore, "classrooms"), // Reference the "classrooms" collection
-                where("creator", "==", user.email) // Filter by creator's email
-            );
-            
             // Fetch data once
-            getDocs(classroomsQuery).then((snapshot) => {
+            getClassrooms(user).then((snapshot) => {
                 let classrooms = []; // Initialize array to store classrooms
-            
                 snapshot.forEach((doc) => {
-                    let data = { id: doc.id, ...doc.data() };
-                    classrooms.push(data);
-            
+                    let data = doc;
                     let div = document.createElement("div");
                     div.className =
                         "cont h-fit rounded-lg bg-lime-200 border-2 border-lime-300 shadow-none shadow-lime-500 hover:shadow-lg transition-all text-slate-800";

@@ -199,7 +199,7 @@ auth.onAuthStateChanged(async (user) => {
                 let fields = inps.map(i => ({
                     ...i.props,
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
-                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value
+                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(id).querySelector('.data input[name="q1"]:checked')?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value)
                 }));
 
                 await addDoc(collection(d, "quizzes", formid, "responses"), {

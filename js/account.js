@@ -73,7 +73,7 @@ auth.onAuthStateChanged(async (user) => {
                     <h1 class="pt-12 p-4 text-2xl font-bold ">${data.name}</h1>
                     <p class="p-4 pt-0 text-sm">${data.description ?? "No description yet!"}</p>
                     <a href="/classroom/${data.id}" class="pt-0 p-4 flex gap-1 hover:gap-2 text-lime-700 btn btn-ghost w-fit hover:bg-transparent border-0 shadow-none">
-                        Edit 
+                        Continue 
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: oklch(0.532 0.157 131.589);">
                             <path d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"></path>
                         </svg>
@@ -89,6 +89,119 @@ auth.onAuthStateChanged(async (user) => {
             });
         }
 
+        if(location.pathname.endsWith("/new-quiz")) {
+            const pathSegments = window.location.pathname.split("/");
+            const classid = pathSegments[2];
+            let d = doc(firestore, "classrooms", classid);
+
+            let inps = [];
+
+            let radio = new Radio({
+                label: "Question 1",
+                id: `inp_${Date.now()}`,
+                type: "text",
+                debug: true,
+                onchange: (e, input) => {
+
+                },
+                ondelete: () => {
+                    inps.splice(0, 1);
+                }
+            });
+
+            inps.push(radio);
+
+            document.getElementById("questions").append(radio.element);
+            radio._onappend();
+
+            document.getElementById("add-inp").onclick = () => {
+                let i = inps.length;
+                let radio = new Radio({
+                    label: "Question 1",
+                    id: `inp_${Date.now()}`,
+                    type: "text",
+                    debug: true,
+                    onchange: (e, input) => {
+    
+                    },
+                    ondelete: () => {
+                        inps.splice(i, 1);
+                    }
+                });
+
+                inps.push(radio);
+    
+                document.getElementById("questions").append(radio.element);
+                radio._onappend();
+            }
+
+            document.getElementById("create-form").onclick = async () => {
+                let fields = inps.map(i => ({
+                    ...i.props,
+                    question: document.getElementById(i.props.id).querySelector(".question").innerText,
+                    data: i.props.type === "radio"
+                        ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
+                            option.nextElementSibling.innerText)
+                        : []
+                }));
+
+                await addDoc(collection(d, "quizzes"), {
+                    creator: user.email,
+                    fields: fields
+                });
+            }
+            return;
+        }
+        if(location.pathname.includes("/quiz/")) {
+            const pathSegments = window.location.pathname.split("/");
+            const classid = pathSegments[2];
+            let d = doc(firestore, "classrooms", classid);
+
+            let formid = pathSegments[4];
+
+            let f = await getDoc(doc(d, "quizzes", formid));
+
+            f = { id: f.id, ...f.data() };
+
+            let inps = [];
+
+            f.forEach(g => {
+                let radio = new Radio({
+                    label: g.question,
+                    id: g.id,
+                    type: g.type,
+                    debug: false,
+                    onchange: (e, input) => {
+    
+                    },
+                    ondelete: () => {
+                        inps.splice(0, 1);
+                    }
+                });
+    
+                inps.push(radio);
+    
+                document.getElementById("questions").append(radio.element);
+                radio._onappend();
+            });
+
+            document.getElementById("create-form").onclick = async () => {
+                let fields = inps.map(i => ({
+                    ...i.props,
+                    question: document.getElementById(i.props.id).querySelector(".question").innerText,
+                    data: i.props.type === "radio"
+                        ? Array.from(document.getElementById(i.props.id).querySelectorAll(".data input[type='radio']")).map(option => 
+                            option.nextElementSibling.innerText)
+                        : []
+                }));
+
+                await addDoc(collection(d, "quizzes"), {
+                    creator: user.email,
+                    fields: fields
+                });
+            }
+            return;
+        }
         if(location.pathname.startsWith("/classroom/")) {
             let pquery = new URLSearchParams(location.search);
             let path = "updates";
@@ -268,8 +381,13 @@ auth.onAuthStateChanged(async (user) => {
                     document.getElementById("quizzesHolder").classList.replace("hidden", "flex");
 
                     if(data.creator === user.email || currentMem.role === "teacher") {
+                        document.getElementById("new-quiz-btn").onclick = () => {
+                            const newUrl = `${location.origin}/classroom/${classid}/new-quiz`;
+                            window.open(newUrl, "_self");
+                        }
                         document.getElementById("quizzesHolder").querySelector(".teach").classList.replace("hidden", "flex");
                     } else {
+                        
                         document.getElementById("quizzesHolder").querySelector(".student").classList.replace("hidden", "flex");
                     }
 
@@ -281,24 +399,31 @@ auth.onAuthStateChanged(async (user) => {
 
                         quiz.forEach(u => {
                             let div = document.createElement("div");
-                            div.className = "border-2 border-lime-200 rounded-md";
-                            let date = formatFirebaseTimestamp(u.createdAt);
-                            div.innerHTML = `
-                                <div class="p-3 border-b-2 border-lime-200 flex justify-between items-center">
-                                    <p class="text-base text-lime-700">${u.creator} <span class="text-xs text-lime-800">( ${date} )</span></p>
-                                    ${ u.creator === user.email ? `<span class="btn btn-ghost hover:bg-transparent border-0 shadow-none text-error hover:text-red-600 p-0 h-fit text-lg post-delete"><i class="fi fi-sr-trash"></i></span>` : "" }
-                                </div>
-                                <p class="text-sm text-lime-600 p-3">${u.message}</p>
+                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-70 flex flex-col justify-center items-center gap-2";
+                            // let date = formatFirebaseTimestamp(u.createdAt);
+
+                            div.innerHTML= `
+                                <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">${u.name ?? "Quiz 1"}</p>
+                                <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">13/12/2025</span></p>
+                                <a href="/classroom/${classid}/quiz/${u.id}" id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>Attempt</a>
                             `;
 
-                            if (u.creator === user.email) {
-                                div.querySelector(".post-delete").onclick = async () => {
-                                    await deleteDoc(doc(updatesRef, u.id));
-                                    location.reload();
-                                };
+                            if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {
+                                div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex flex-col justify-center items-center gap-2";
+                                div.innerHTML = `
+                                    <p class="w-full border-b border-lime-900 pb-4 mb-2">${u.name ?? "Quiz 1"}</p>
+                                    <button id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</button>
+                                `;
+
+                                // div.querySelector(".post-delete").onclick = async () => {
+                                //     await deleteDoc(doc(updatesRef, u.id));
+                                //     location.reload();
+                                // };
+
+
                             }
 
-                            document.getElementById("updates-list").append(div);
+                            document.getElementById(`${data.creator === user.email ? "teacher" : currentMem.role}-quiz`).append(div);
                         });
                     });
                 }

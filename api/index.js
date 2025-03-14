@@ -36,6 +36,11 @@ app.route("/classroom/:id/new-quiz")
     res.sendFile(path.join(__dirname, "html", "new_form.html"));
 });
 
+app.route("/classroom/:id/quiz/:q")
+.get((req, res) => {
+    res.sendFile(path.join(__dirname, "html", "quiz.html"));
+});
+
 app.listen(3000, () => {
     console.log("Server started on port 3000");
 });

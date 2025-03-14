@@ -168,8 +168,8 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
 
-            document.getElementById(qname).innerText = f.name ?? "Quiz";
-            document.getElementById(qdesc).innerText = f.description ?? "";
+            document.getElementById("qname").innerText = f.name ?? "Quiz";
+            document.getElementById("qdesc").innerText = f.description ?? "";
 
             f.fields.forEach(g => {
                 let radio = new Radio({

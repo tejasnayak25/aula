@@ -47,10 +47,12 @@ class HTMLNode {
 function getRadio(opts, id, debug) {
     let html = "";
 
-    if(!opts && debug) {
-        opts = [ "Option 1" ];
-    } else {
-        return "";
+    if(!opts) {
+        if(debug) {
+            opts = [ "Option 1" ];
+        } else {
+            return "";
+        }
     }
 
     opts.forEach(opt => {

@@ -93,7 +93,15 @@ auth.onAuthStateChanged(async (user) => {
                 let currentMem = data.members.find(item => item.email === user.email);
 
                 if(!currentMem && data.creator !== user.email) {
-                    document.getElementById("no-access").classList.replace("hidden", "flex");
+                    if(data.inv_req) {
+                        document.getElementById("request-access").classList.replace("hidden", "flex");
+
+                        document.getElementById("req-close").onclick = () => {
+                            document.getElementById("request-access").classList.replace("flex", "hidden");
+                        }
+                    } else {
+                        document.getElementById("no-access").classList.replace("hidden", "flex");
+                    }
                     return;
                 }
 
@@ -162,6 +170,18 @@ auth.onAuthStateChanged(async (user) => {
                                 window.open("/dashboard", "_self");
                             }
                         }
+
+                        document.getElementById("settings").classList.replace("hidden", "block");
+                        let req = document.getElementById("settings").querySelector("#inv-req");
+                        if(data.inv_req) {
+                            req.checked = data.inv_req;
+                        }
+
+                        req.onchange = async () => {
+                            await updateDoc(d, {
+                                inv_req: req.checked
+                            });
+                        }
                     } else {
                         document.getElementById("leave-class").onclick = async () => {
                             if(confirm(`Are you sure you want to leave the classroom '${data.name}' ?`)) {
@@ -181,14 +201,14 @@ auth.onAuthStateChanged(async (user) => {
                     getDocs(updatesQuery).then(vals => {
                         let ups = vals.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                        console.log(vals);
-
                         ups.forEach(u => {
                             let div = document.createElement("div");
                             div.className = "border-2 border-lime-200 rounded-md";
+
+                            let date = formatFirebaseTimestamp(u.createdAt);
                             div.innerHTML = `
                                 <div class="p-3 border-b-2 border-lime-200 flex justify-between items-center">
-                                    <p class="text-base text-lime-700">${u.creator}</p>
+                                    <p class="text-base text-lime-700">${u.creator} <span class="text-xs text-lime-800">( ${date} )</span></p>
                                     ${ u.creator === user.email ? `<span class="btn btn-ghost hover:bg-transparent border-0 shadow-none text-error hover:text-red-600 p-0 h-fit text-lg post-delete"><i class="fi fi-sr-trash"></i></span>` : "" }
                                 </div>
                                 <p class="text-sm text-lime-600 p-3">${u.message}</p>
@@ -219,6 +239,35 @@ auth.onAuthStateChanged(async (user) => {
                             location.reload();
                         }
                     }
+                } else if(path === "quizzes") {
+                    const updatesRef = collection(d, "quizzes");
+                    const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
+
+                    getDocs(updatesQuery).then(vals => {
+                        let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                        quiz.forEach(u => {
+                            let div = document.createElement("div");
+                            div.className = "border-2 border-lime-200 rounded-md";
+                            let date = formatFirebaseTimestamp(u.createdAt);
+                            div.innerHTML = `
+                                <div class="p-3 border-b-2 border-lime-200 flex justify-between items-center">
+                                    <p class="text-base text-lime-700">${u.creator} <span class="text-xs text-lime-800">( ${date} )</span></p>
+                                    ${ u.creator === user.email ? `<span class="btn btn-ghost hover:bg-transparent border-0 shadow-none text-error hover:text-red-600 p-0 h-fit text-lg post-delete"><i class="fi fi-sr-trash"></i></span>` : "" }
+                                </div>
+                                <p class="text-sm text-lime-600 p-3">${u.message}</p>
+                            `;
+
+                            if (u.creator === user.email) {
+                                div.querySelector(".post-delete").onclick = async () => {
+                                    await deleteDoc(doc(updatesRef, u.id));
+                                    location.reload();
+                                };
+                            }
+
+                            document.getElementById("updates-list").append(div);
+                        });
+                    });
                 }
             });
         }
@@ -234,4 +283,13 @@ function signup() {
     } else {
         createUserWithEmailAndPassword(auth, email.value, password.value);
     }
+}
+
+function formatFirebaseTimestamp(timestamp) {
+    const date = timestamp.toDate(); // Convert Firestore Timestamp to JavaScript Date
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
 }

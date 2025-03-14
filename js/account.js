@@ -520,8 +520,9 @@ auth.onAuthStateChanged(async (user) => {
 
                         quiz.forEach(u => {
                             let div = document.createElement("div");
-                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-70 flex flex-col justify-center items-center gap-2";
+                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full h-70 flex flex-col justify-center items-center gap-2";
                             let date = u.deadline ? formatTimestamp(u.deadline) : null;
+                            
 
                             let attemped = u.responses ? u.responses.find(i => i===user.email) : false;
                             div.innerHTML= `

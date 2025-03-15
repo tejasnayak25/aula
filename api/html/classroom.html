@@ -1,11 +1,18 @@
-<html lang="en" class="bg-lime-100">
+<html lang="en" class="bg-lime-100 scroll">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz App</title>
     <link rel="stylesheet" href="../css/output.css">
+    <!-- <link rel="stylesheet" href="../css/style.css"> -->
     <link rel="stylesheet" href="../css/uicons-solid-rounded/css/uicons-solid-rounded.css">
     <link rel="stylesheet" href="../css/uicons-bold-rounded/css/uicons-bold-rounded.css">
+    <style>
+        * {
+    scrollbar-color: #bbf451 #ecfcca; /* thumb color + track color */
+}
+
+    </style>
 </head>
 <body class=" bg-lime-100 text-slate-800 md:flex block flex-col h-full">
     <div class="bg-lime-200 px-4 py-6 sm:px-6 lg:px-8 relative flex justify-between items-center">
@@ -17,10 +24,10 @@
 
     <div class=" flex flex-col w-full flex-1">
         <div id="mini-menu" class="p-3 overflow-x-auto flex flex-nowrap justify-center gap-5 list-none">
-            <a href="?section=updates" id="updates" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Updates</a>
-            <a href="?section=quizzes" id="quizzes" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Quiz</a>
-            <a href="?section=members" id="members" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Members</a>
-            <a href="?section=details" id="details" class="btn btn-ghost hover:bg-transparent shadow-none border-0 border-lime-300 hover:text-slate-800">Details</a>
+            <a href="?section=updates" id="updates" class="btn btn-ghost hover:bg-transparent shadow-none rounded-none border-0 border-lime-300 hover:text-slate-800">Updates</a>
+            <a href="?section=quizzes" id="quizzes" class="btn btn-ghost hover:bg-transparent shadow-none rounded-none border-0 border-lime-300 hover:text-slate-800">Quiz</a>
+            <a href="?section=members" id="members" class="btn btn-ghost hover:bg-transparent shadow-none rounded-none border-0 border-lime-300 hover:text-slate-800">Members</a>
+            <a href="?section=details" id="details" class="btn btn-ghost hover:bg-transparent shadow-none rounded-none border-0 border-lime-300 hover:text-slate-800">Details</a>
         </div>
 
         <div id="membersHolder" class="hidden md:grid-cols-2 sm:grid-cols-1 p-4 flex-1">
@@ -31,7 +38,7 @@
                 </div>
             </div>
             <div class="students size-full md:overflow-y-scroll overflow-y-auto h-full">
-                <p class="p-1 border-b border-lime-300">Students</p>
+                <p class="p-1 border-b border-lime-300 bglim5">Students</p>
                 <div id="student-list" class=" flex flex-col w-full">
                     <p id="student-empty" class="text-sm p-2">Nothing here!</p>
                 </div>
@@ -48,8 +55,9 @@
             <div class=" md:w-1/3 w-full flex items-center-center flex-col mb-10">
                 <label for="class-code" class="block mb-2 text-sm font-medium text-gray-900 text-center">Classroom Code</label>
                 <input type="text" id="class-code" class="bg-transparent border border-lime-300 text-gray-900 text-sm rounded-lg block w-auto p-2.5 outline-0 mb-4" placeholder="12345..." readonly />
-                <div class="flex justify-center">
+                <div class="flex justify-center gap-3">
                     <button id="share-code" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-share"></i>Share</button>
+                    <button id="share-qr-btn" class=" flex justify-center font-semibold  btn btn-circle btn-success rounded-full  gap-2 items-center"><i class=" fi fi-sr-qrcode"></i></button>
                 </div>
             </div>
 
@@ -75,9 +83,9 @@
         </div>
 
         <div id="quizzesHolder" class="hidden flex-col">
-            <div id="teacher-quiz" class="teach hidden gap-5 flex-nowrap overflow-x-auto md:p-8 p-4">
+            <div id="teacher-quiz" class="teach hidden gap-5 flex-wrap overflow-y-auto md:p-8 p-4">
                 <!-- <button id="new-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10 mb-10"><i class=" fi fi-sr-plus"></i>New Quiz</button> -->
-                <div id="new-quiz-btn" class=" border-2 border-dashed border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex justify-center items-center gap-2">
+                <div id="new-quiz-btn" class=" border-2 border-dashed border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full transition-all h-32 flex justify-center items-center gap-2">
                     <i class=" fi fi-sr-plus text-xl"></i>
                     <p>New Quiz</p>
                 </div>
@@ -125,6 +133,18 @@
             </div>
             <div class="flex justify-center mt-3 pt-3">
                 <button id="add-mem" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-plus"></i>Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="qr-win" class=" absolute size-full bg-slate-900/70 top-0 hidden transition-all justify-center items-center p-2">
+        <div class="md:w-1/3 w-full rounded-2xl border-2 border-lime-500 bg-lime-200 p-7 relative">
+            <div class="pb-3 w-full flex justify-center font-semibold border-b-0 border-lime-300">Class QR <span id="qr-close" class="absolute right-5 btn btn-ghost hover:bg-transparent border-0 shadow-none hover:text-slate-800 p-0 h-fit"><i class="fi fi-sr-cross"></i></span></div>
+            <div class="relative w-full flex justify-center mt-3">
+                <img id="qr-image" src="" alt="" class="rounded-md w-40 h-40 border-2 border-lime-400">
+            </div>
+            <div class="flex justify-center mt-3 pt-3">
+                <button id="share-qr-img" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-share"></i>Share</button>
             </div>
         </div>
     </div>

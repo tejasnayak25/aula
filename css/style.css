@@ -2,8 +2,12 @@ input[type="datetime-local"] {
     color-scheme: light;
 }
 
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+  background-color: #bbf451;
+}
+
 @media print {
     html, body {
       display: none; /* hide whole page */
     }
-}
+  }

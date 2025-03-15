@@ -41,6 +41,11 @@ app.route("/classroom/:id/quiz/:q")
     res.sendFile(path.join(__dirname, "html", "quiz.html"));
 });
 
+app.route("/classroom/:id/quiz/:q/responses")
+.get((req, res) => {
+    res.sendFile(path.join(__dirname, "html", "responses.html"));
+});
+
 app.route("/classroom/:id/edit-quiz/:q")
 .get((req, res) => {
     res.sendFile(path.join(__dirname, "html", "form_edit.html"));

@@ -106,6 +106,16 @@ auth.onAuthStateChanged(async (user) => {
 
                 location.reload();
             }
+
+            document.getElementById("logout-btn").onclick = async () => {
+                await auth.signOut();
+            }
+
+            document.getElementById("tabs").onchange = async () => {
+                if(document.getElementById("tabs").value === "logout") {
+                    await auth.signOut();
+                }
+            }
         }
 
         if(location.pathname.endsWith("/new-quiz")) {
@@ -113,7 +123,13 @@ auth.onAuthStateChanged(async (user) => {
             const classid = pathSegments[2];
             let d = doc(firestore, "classrooms", classid);
 
+            let classData = await getCurrentClassMember(d, user);
+            if (!classData || (classData.currentMem?.role !== "teacher" && classData.class.creator !== user.email)) {
+                return;
+            }
+
             let inps = [];
+            window.inps = inps;
 
             let radio = new Radio({
                 label: "Question 1",
@@ -125,6 +141,9 @@ auth.onAuthStateChanged(async (user) => {
                 },
                 ondelete: () => {
                     inps.splice(0, 1);
+                },
+                onduplicate: (rad) => {
+                    inps.splice(1, 0, rad);
                 }
             });
 
@@ -136,7 +155,7 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById("add-inp").onclick = () => {
                 let i = inps.length;
                 let radio = new Radio({
-                    label: "Question 1",
+                    label: `Question ${i+1}`,
                     id: `inp_${Date.now()}`,
                     type: "text",
                     debug: true,
@@ -145,6 +164,9 @@ auth.onAuthStateChanged(async (user) => {
                     },
                     ondelete: () => {
                         inps.splice(i, 1);
+                    },
+                    onduplicate: (rad) => {
+                        inps.splice(i+1, 0, rad);
                     }
                 });
 
@@ -202,6 +224,11 @@ auth.onAuthStateChanged(async (user) => {
             const pathSegments = window.location.pathname.split("/");
             const classid = pathSegments[2];
             let d = doc(firestore, "classrooms", classid);
+
+            let classData = await getCurrentClassMember(d, user);
+            if (!classData || classData.currentMem?.role !== "student") {
+                return;
+            }            
 
             let formid = pathSegments[4];
 
@@ -274,6 +301,13 @@ auth.onAuthStateChanged(async (user) => {
             const classid = pathSegments[2];
             let d = doc(firestore, "classrooms", classid);
 
+            let classData = await getCurrentClassMember(d, user);
+            console.log(classData)
+            if (!classData || (classData.currentMem?.role !== "teacher" && classData.class.creator !== user.email)) {
+                console.log("hi")
+                return;
+            }
+
             let formid = pathSegments[4];
 
             let f = await getDoc(doc(d, "quizzes", formid));
@@ -281,11 +315,13 @@ auth.onAuthStateChanged(async (user) => {
             f = { id: f.id, ...f.data() };
 
             let inps = [];
+            window.inps = inps;
 
             document.getElementById("qname").innerText = f.name ?? "Quiz";
             document.getElementById("qdesc").innerText = f.description ?? "";
 
             f.fields.forEach(g => {
+                let i = inps.length;
                 let radio = new Radio({
                     label: g.question,
                     id: g.id,
@@ -293,11 +329,16 @@ auth.onAuthStateChanged(async (user) => {
                     debug: true,
                     data: g.data,
                     required: g.required,
+                    marks: g.marks,
+                    response: g.response,
                     onchange: (e, input) => {
     
                     },
                     ondelete: () => {
-                        // inps.splice(0, 1);
+                        inps.splice(i, 1);
+                    },
+                    onduplicate: (rad) => {
+                        inps.splice(i+1, 0, rad);
                     }
                 });
     
@@ -307,6 +348,30 @@ auth.onAuthStateChanged(async (user) => {
                 radio._onappend();
             });
 
+            document.getElementById("add-inp").onclick = () => {
+                let i = inps.length;
+                let radio = new Radio({
+                    label: `Question ${i+1}`,
+                    id: `inp_${Date.now()}`,
+                    type: "text",
+                    debug: true,
+                    onchange: (e, input) => {
+    
+                    },
+                    ondelete: () => {
+                        inps.splice(i, 1);
+                    },
+                    onduplicate: (rad) => {
+                        inps.splice(i+1, 0, rad);
+                    }
+                });
+
+                inps.push(radio);
+    
+                document.getElementById("questions").append(radio.element);
+                radio._onappend();
+            }
+
             document.getElementById("settings-btn").onclick = () => {
                 document.getElementById("add-mem-win").classList.replace("hidden", "flex");
             }
@@ -315,58 +380,62 @@ auth.onAuthStateChanged(async (user) => {
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
-            let results = [];
-
             document.getElementById("results-btn").onclick = () => {
-                document.getElementById("results-win").classList.replace("hidden", "flex");
-
-                let table = document.getElementById("res-table");
-                let head = table.firstElementChild;
-                table.innerHTML = "";
-                table.append(head);
-
-                const updatesRef = collection(d, "quizzes", formid, "responses");
-                const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
-
-                getDocs(updatesQuery).then(vals => {
-                    let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
-                    results = [];
-
-                    quiz.forEach(i => {
-                        let marks = 0;
-                        i.fields.forEach(j => {
-                            marks += j.marks;
-                        });
-                        results.push({user:i.creator, marks: marks});
-
-                        let tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${i.creator}</td>
-                            <td>${marks}</td>
-                        `;
-
-                        table.append(tr);
-                    });
-                });
-
+                window.open(`/classroom/${classid}/quiz/${formid}/responses`, "_self");
             }
 
-            document.getElementById("download-csv").onclick = () => {
-                let text = "Email Score\n";
-                results.forEach(r => {
-                    text += `${r.user} ${r.marks}\n`;
-                });
-                let blob = new Blob([text], { type: "application/csv" });
-                let url = URL.createObjectURL(blob);
-                let a = document.createElement("a");
-                a.href = url;
-                a.download = `${f.name}.csv`;
-                a.click();
-            }
+            // let results = [];
 
-            document.getElementById("res-close").onclick = () => {
-                document.getElementById("results-win").classList.replace("flex", "hidden");
-            }
+            // document.getElementById("results-btn").onclick = () => {
+            //     document.getElementById("results-win").classList.replace("hidden", "flex");
+
+            //     let table = document.getElementById("res-table");
+            //     let head = table.firstElementChild;
+            //     table.innerHTML = "";
+            //     table.append(head);
+
+            //     const updatesRef = collection(d, "quizzes", formid, "responses");
+            //     const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
+
+            //     getDocs(updatesQuery).then(vals => {
+            //         let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
+            //         results = [];
+
+            //         quiz.forEach(i => {
+            //             let marks = 0;
+            //             i.fields.forEach(j => {
+            //                 marks += j.marks;
+            //             });
+            //             results.push({user:i.creator, marks: marks});
+
+            //             let tr = document.createElement("tr");
+            //             tr.innerHTML = `
+            //                 <td>${i.creator}</td>
+            //                 <td>${marks}</td>
+            //             `;
+
+            //             table.append(tr);
+            //         });
+            //     });
+
+            // }
+
+            // document.getElementById("download-csv").onclick = () => {
+            //     let text = "Email Score\n";
+            //     results.forEach(r => {
+            //         text += `${r.user} ${r.marks}\n`;
+            //     });
+            //     let blob = new Blob([text], { type: "application/csv" });
+            //     let url = URL.createObjectURL(blob);
+            //     let a = document.createElement("a");
+            //     a.href = url;
+            //     a.download = `${f.name}.csv`;
+            //     a.click();
+            // }
+
+            // document.getElementById("res-close").onclick = () => {
+            //     document.getElementById("results-win").classList.replace("flex", "hidden");
+            // }
 
             let deadline = null;
 
@@ -501,6 +570,27 @@ auth.onAuthStateChanged(async (user) => {
                         });
                     }
 
+                    let qrImg = document.getElementById("qr-image");
+                    document.getElementById("share-qr-btn").onclick = () => {
+                        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${location.href}&&color=7ccf00&&bgcolor=ecfcca&&margin=3&&qzone=1`;
+                        document.getElementById("qr-win").classList.replace("hidden", "flex");
+                    }
+        
+                    document.getElementById("qr-close").onclick = () => {
+                        document.getElementById("qr-win").classList.replace("flex", "hidden");
+                    }
+        
+                    document.getElementById("share-qr-img").onclick = async () => {
+                        let data = await imageUrlToFile(qrImg.src);
+                        navigator.share({
+                            files: [
+                                data
+                            ],
+                            title: `Join '${data.name}' classroom!`,
+                            text: `Class-Code: ${classid}`
+                        })
+                    }
+
                     if(data.creator === user.email) {
                         document.getElementById("leave-message").innerText = "Delete";
                         document.getElementById("leave-message").previousElementSibling.classList.replace("fi-sr-exit", "fi-sr-trash");
@@ -601,7 +691,7 @@ auth.onAuthStateChanged(async (user) => {
 
                         quiz.forEach(u => {
                             let div = document.createElement("div");
-                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full h-70 flex flex-col justify-center items-center gap-2";
+                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full transition-all h-70 flex flex-col justify-center items-center gap-2";
                             let date = u.deadline ? formatTimestamp(u.deadline) : null;
 
                             let attemped = u.responses ? u.responses.find(i => i===user.email) : false;
@@ -613,16 +703,21 @@ auth.onAuthStateChanged(async (user) => {
                             `;
 
                             if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {
-                                div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-70 h-32 flex flex-col justify-center items-center gap-2";
+                                div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full transition-all h-32 flex flex-col justify-center items-center gap-2";
                                 div.innerHTML = `
                                     <p class="w-full border-b border-lime-900 pb-4 mb-2">${u.name ?? "Quiz 1"}</p>
-                                    <a href="/classroom/${classid}/edit-quiz/${u.id}" id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</a>
+                                    <div class="flex justify-center w-full gap-3">
+                                        <a href="/classroom/${classid}/edit-quiz/${u.id}" id="edit-quiz-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-edit"></i>Edit</a>
+                                        <button id="delete-quiz-btn" class=" flex justify-center font-semibold  btn btn-error btn-circle rounded-full  gap-2 items-center"><i class=" fi fi-sr-trash"></i></button>
+                                    </div>
                                 `;
 
-                                // div.querySelector(".post-delete").onclick = async () => {
-                                //     await deleteDoc(doc(updatesRef, u.id));
-                                //     location.reload();
-                                // };
+                                div.querySelector("#delete-quiz-btn").onclick = async () => {
+                                    if(confirm(`Are you sure you want to delete the quiz '${u.name ?? "Quiz 1"}' ?`)) {
+                                        await deleteDoc(doc(updatesRef, u.id));
+                                        location.reload();
+                                    }
+                                };
 
 
                             }
@@ -687,4 +782,33 @@ function levenshteinDistance(a, b) {
         }
     }
     return dp[a.length][b.length];
+}
+
+async function imageUrlToBlob(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        console.error("Error converting image URL to blob:", error);
+    }
+}
+
+async function imageUrlToFile(url, filename = "classroom.png") {
+    const blob = await imageUrlToBlob(url);
+    return new File([blob], filename, { type: blob.type });
+}
+
+function getCurrentClassMember(d, user) {
+    return new Promise((resolve, reject) => {
+        getDoc(d).then((val) => {
+            let data = val.data();
+    
+            let currentMem = data.members.find(item => item.email === user.email);
+
+            resolve({ class: data, currentMem });
+        }).catch(e => {
+            resolve(null);
+        });
+    });
 }

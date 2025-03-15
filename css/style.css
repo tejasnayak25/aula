@@ -2,8 +2,8 @@ input[type="datetime-local"] {
     color-scheme: light;
 }
 
-html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
-  background-color: #bbf451;
+* {
+  scrollbar-color: #bbf451 #ecfcca; /* thumb color + track color */
 }
 
 @media print {
@@ -11,3 +11,11 @@ html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
       display: none; /* hide whole page */
     }
   }
+
+.btn.btn-ghost:focus {
+  background-color: transparent;
+}
+
+.btn.btn-ghost:active {
+  background-color: transparent;
+}

@@ -14,8 +14,10 @@ input[type="datetime-local"] {
 
 .btn.btn-ghost:focus {
   background-color: transparent;
+  color: black;
 }
 
 .btn.btn-ghost:active {
   background-color: transparent;
+  color: black;
 }

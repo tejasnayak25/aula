@@ -443,7 +443,7 @@ auth.onAuthStateChanged(async (user) => {
             window.inps = inps;
 
             if(!classData.class.ai_eval) {
-                document.getElementById("ai-eval").setAttribute("disabled");
+                document.getElementById("ai-eval").setAttribute("disabled", "disabled");
             }
 
             document.getElementById("qname").innerText = f.name ?? "Quiz";

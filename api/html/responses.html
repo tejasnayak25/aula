@@ -1,4 +1,4 @@
-<html lang="en" class=" bg-lime-200">
+<html lang="en" class=" bg-lime-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +7,23 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/uicons-solid-rounded/css/uicons-solid-rounded.css">
     <link rel="stylesheet" href="/css/uicons-bold-rounded/css/uicons-bold-rounded.css">
+    <meta id="scheme" content="#9ae600">
 </head>
-<body class=" bg-lime-100 text-lime-800 flex justify-center">
-    <div class="p-2 md:w-1/2 w-full">
-        <table class="table">
-            <tr class=" table-row">
-                <th class=" table-column">Email</th>
-                <th class=" table-column">Score</th>
+<body class=" bg-lime-100 text-lime-800 flex items-center flex-col h-full">
+    <p class=" text-lime-800 md:text-center text-start transition-all p-5 md:py-3 py-4 font-bold bg-lime-400 w-full md:mb-3 mb-0 relative flex md:justify-center justify-start items-center overflow-hidden whitespace-nowrap text-ellipsis">Quiz 1 - Responses</p>
+    <div class="p-2 md:w-1/2 w-full flex-1 overflow-y-auto md:border-2 border-0 md:rounded-md rounded-none border-lime-400 transition-all">
+        <table id="res-table" class="table">
+            <tr class=" border-b-2 border-lime-400">
+                <th class="">Email</th>
+                <th class="">Score</th>
             </tr>
         </table>
     </div>
-    
+    <div class=" flex w-full md:justify-center justify-start gap-3 p-3">
+        <button id="download-csv" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-download"></i>Download CSV</button>
+        <button id="share-qr-btn" class=" flex justify-center font-semibold  btn btn-circle btn-success rounded-full  gap-2 items-center"><i class=" fi fi-sr-share"></i></button>
+    </div>
+    <p class=" text-sm text-lime-800 text-center p-3">Powered By AULA</p>
     <script type="module" src="/js/account.js"></script>
 </body>
 </html>

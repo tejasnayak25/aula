@@ -220,7 +220,66 @@ auth.onAuthStateChanged(async (user) => {
             }
             return;
         }
-        if(location.pathname.includes("/quiz/")) {
+        if(location.pathname.includes("/quiz/") && location.pathname.endsWith("responses")) {
+            const pathSegments = window.location.pathname.split("/");
+            const classid = pathSegments[2];
+            let d = doc(firestore, "classrooms", classid);
+
+            let classData = await getCurrentClassMember(d, user);
+            if (
+                !classData || 
+                (!["teacher", "student"].includes(classData.currentMem?.role) && classData.class?.creator !== user.email)
+            ) {
+                return;
+            }              
+
+            let formid = pathSegments[4];
+
+            let results = [];
+
+            let table = document.getElementById("res-table");
+
+            const updatesRef = collection(d, "quizzes", formid, "responses");
+            const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
+
+            getDocs(updatesQuery).then(vals => {
+                let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
+                results = [];
+
+                quiz.forEach(i => {
+                    let marks = 0;
+                    i.fields.forEach(j => {
+                        marks += j.marks;
+                    });
+                    results.push({user:i.creator, marks: marks});
+
+                    let tr = document.createElement("tr");
+                    tr.className = "border-b border-lime-400";
+                    tr.innerHTML = `
+                        <td>${i.creator}</td>
+                        <td>${marks}</td>
+                    `;
+
+                    table.append(tr);
+                });
+            });
+
+            document.getElementById("download-csv").onclick = () => {
+                let text = "Email Score\n";
+                results.forEach(r => {
+                    text += `${r.user}, ${r.marks}\n`;
+                });
+                let blob = new Blob([text], { type: "application/csv" });
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                a.href = url;
+                a.download = `${f.name}.csv`;
+                a.click();
+            }
+
+            return;
+        }
+        if(location.pathname.includes("/quiz/") && !location.pathname.endsWith("responses")) {
             const pathSegments = window.location.pathname.split("/");
             const classid = pathSegments[2];
             let d = doc(firestore, "classrooms", classid);
@@ -383,59 +442,6 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById("results-btn").onclick = () => {
                 window.open(`/classroom/${classid}/quiz/${formid}/responses`, "_self");
             }
-
-            // let results = [];
-
-            // document.getElementById("results-btn").onclick = () => {
-            //     document.getElementById("results-win").classList.replace("hidden", "flex");
-
-            //     let table = document.getElementById("res-table");
-            //     let head = table.firstElementChild;
-            //     table.innerHTML = "";
-            //     table.append(head);
-
-            //     const updatesRef = collection(d, "quizzes", formid, "responses");
-            //     const updatesQuery = query(updatesRef, orderBy("createdAt", "desc"));
-
-            //     getDocs(updatesQuery).then(vals => {
-            //         let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
-            //         results = [];
-
-            //         quiz.forEach(i => {
-            //             let marks = 0;
-            //             i.fields.forEach(j => {
-            //                 marks += j.marks;
-            //             });
-            //             results.push({user:i.creator, marks: marks});
-
-            //             let tr = document.createElement("tr");
-            //             tr.innerHTML = `
-            //                 <td>${i.creator}</td>
-            //                 <td>${marks}</td>
-            //             `;
-
-            //             table.append(tr);
-            //         });
-            //     });
-
-            // }
-
-            // document.getElementById("download-csv").onclick = () => {
-            //     let text = "Email Score\n";
-            //     results.forEach(r => {
-            //         text += `${r.user} ${r.marks}\n`;
-            //     });
-            //     let blob = new Blob([text], { type: "application/csv" });
-            //     let url = URL.createObjectURL(blob);
-            //     let a = document.createElement("a");
-            //     a.href = url;
-            //     a.download = `${f.name}.csv`;
-            //     a.click();
-            // }
-
-            // document.getElementById("res-close").onclick = () => {
-            //     document.getElementById("results-win").classList.replace("flex", "hidden");
-            // }
 
             let deadline = null;
 
@@ -637,7 +643,7 @@ auth.onAuthStateChanged(async (user) => {
 
                             let date = formatFirebaseTimestamp(u.createdAt);
                             div.innerHTML = `
-                                <div class="p-3 border-b-2 border-lime-200 flex justify-between items-center">
+                                <div class="p-3 border-b-2 border-lime-200 bg-lime-200 flex justify-between items-center">
                                     <p class="text-base text-lime-700">${u.creator} <span class="text-xs text-lime-800">( ${date} )</span></p>
                                     ${ u.creator === user.email ? `<span class="btn btn-ghost hover:bg-transparent border-0 shadow-none text-error hover:text-red-600 p-0 h-fit text-lg post-delete"><i class="fi fi-sr-trash"></i></span>` : "" }
                                 </div>

@@ -1,12 +1,13 @@
-<html lang="en">
+<html lang="en" class="bg-lime-100 scroll">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App</title>
+    <title>Aula</title>
     <link rel="stylesheet" href="/css/output.css">
     <link rel="stylesheet" href="/css/uicons-solid-rounded/css/uicons-solid-rounded.css">
     <link rel="stylesheet" href="/css/uicons-bold-rounded/css/uicons-bold-rounded.css">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="shortcut icon" href="/images/logo.png" type="image/png">
 </head>
 <body class=" bg-lime-100 text-lime-800 flex flex-col justify-center items-center h-full overflow-hidden">
     <div class="md:w-1/2 w-full flex-1 overflow-y-auto border-2 border-lime-300 bg-lime-200 md:rounded-md rounded-none md:mt-3 mt-0">
@@ -16,7 +17,8 @@
         <div id="questions" class="p-3 py-4 flex flex-col gap-5 w-full">
         </div>
 
-        <div class=" flex p-3 border-t-2 border-lime-200 justify-end gap-3">
+        <div class=" flex p-3 border-t-2 border-lime-200 justify-between gap-3">
+            <button id="previous-btn" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10 disabled:opacity-0 disabled:pointer-events-none" disabled><i class=" fi fi-sr-angle-left"></i>Previous</button>
             <button id="submit-form" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-check"></i>Submit</button>
         </div>
     </div>

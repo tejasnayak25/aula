@@ -1,10 +1,27 @@
 let express = require("express");
 let app = express();
 let path = require("path");
+let { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API??"");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", 
+    systemInstruction: "given question, answer, marks and response, evaluate the response and return appropriate marks"
+});
 
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, "..")));
 app.use(express.json());
+
+async function generate(prompt) {
+    try{
+        const result = await model.generateContent(prompt);
+        let text = result.response.text();
+        return text;
+    } catch (e) {
+        console.log(e);
+        return null;
+    }
+}
 
 app.route("/")
 .get((req, res) => {
@@ -49,6 +66,18 @@ app.route("/classroom/:id/quiz/:q/responses")
 app.route("/classroom/:id/edit-quiz/:q")
 .get((req, res) => {
     res.sendFile(path.join(__dirname, "html", "form_edit.html"));
+});
+
+app.route("/evaluate")
+.post(async (req, res) => {
+    let body = req.body;
+
+    let rep = await generate(body);
+
+    res.json({
+        status: rep ? 200 : 500,
+        content: rep
+    });
 });
 
 app.listen(3000, () => {

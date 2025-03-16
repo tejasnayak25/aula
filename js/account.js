@@ -115,6 +115,9 @@ auth.onAuthStateChanged(async (user) => {
                 if(document.getElementById("tabs").value === "logout") {
                     await auth.signOut();
                 }
+                if(document.getElementById("tabs").value === "home") {
+                    window.open(location.origin, "_self");
+                }
             }
         }
 
@@ -130,6 +133,10 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
             window.inps = inps;
+
+            if(!classData.class.ai_eval) {
+                document.getElementById("ai-eval").setAttribute("disabled", "disabled");
+            }
 
             let radio = new Radio({
                 label: "Question 1",
@@ -185,10 +192,14 @@ auth.onAuthStateChanged(async (user) => {
             }
 
             let deadline = null;
+            let layout = null;
+            let ai = null;
 
             document.getElementById("add-mem").onclick = async () => {
                 let val = document.getElementById("datetime").value;
                 deadline = Date.parse(val);
+                layout = document.getElementById("pages").value;
+                ai = document.getElementById("ai-eval").checked;
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
@@ -206,6 +217,8 @@ auth.onAuthStateChanged(async (user) => {
                 let setdata = {};
 
                 if(deadline) setdata.deadline = deadline;
+                if(layout) setdata.layout = layout;
+                if(ai) setdata.ai = ai;
 
                 await addDoc(collection(d, "quizzes"), {
                     name: document.getElementById("qname").innerText,
@@ -235,7 +248,13 @@ auth.onAuthStateChanged(async (user) => {
 
             let formid = pathSegments[4];
 
+            let f = await getDoc(doc(d, "quizzes", formid));
+
+            f = { id: f.id, ...f.data() };
+
             let results = [];
+
+            document.getElementById("quiz-name").innerText = f.name;
 
             let table = document.getElementById("res-table");
 
@@ -246,7 +265,11 @@ auth.onAuthStateChanged(async (user) => {
                 let quiz = vals.docs.map(d => ({ id: d.id, ...d.data() }));
                 results = [];
 
+                let currentMem = classData?.currentMem;
+
                 quiz.forEach(i => {
+                    if(currentMem && currentMem.role === "student" && i.creator !== user.email) return;
+
                     let marks = 0;
                     i.fields.forEach(j => {
                         marks += j.marks;
@@ -265,9 +288,9 @@ auth.onAuthStateChanged(async (user) => {
             });
 
             document.getElementById("download-csv").onclick = () => {
-                let text = "Email Score\n";
+                let text = "Email,Score\n";
                 results.forEach(r => {
-                    text += `${r.user}, ${r.marks}\n`;
+                    text += `${r.user},${r.marks}\n`;
                 });
                 let blob = new Blob([text], { type: "application/csv" });
                 let url = URL.createObjectURL(blob);
@@ -275,6 +298,14 @@ auth.onAuthStateChanged(async (user) => {
                 a.href = url;
                 a.download = `${f.name}.csv`;
                 a.click();
+            }
+
+            document.getElementById("share-whatsapp").onclick = () => {
+                window.open(`https://api.whatsapp.com/send?text=Quiz results for '${f.name}' released! Check your results here -> ${location.href}`, "_blank");
+            }
+
+            document.getElementById("share-email").onclick = () => {
+                window.open(`mailto:${results.map(r => r.user).join(",")}?subject=Quiz results for '${f.name}' released!&body=Check your results here -> ${location.href}`, "_self");
             }
 
             return;
@@ -320,10 +351,24 @@ auth.onAuthStateChanged(async (user) => {
                 radio.response = g.response;
     
                 inps.push(radio);
-    
+
                 document.getElementById("questions").append(radio.element);
                 radio._onappend();
             });
+
+            let ls = document.getElementById("questions").children;
+            let i=0;
+
+            if(f.layout && f.layout === "multi-page") {
+                for (let i = 1; i < ls.length; i++) {
+                    ls[i].classList.add("hidden");
+                }
+                ls[0].classList.add("visible");
+                i++;
+                document.getElementById("submit-form").innerHTML = `<i class=" fi fi-sr-angle-right"></i>Next`;
+
+                document.getElementById("previous-btn").removeAttribute("disabled");
+            }
 
             document.onclick = () => {
                 document.body.requestFullscreen();
@@ -334,11 +379,32 @@ auth.onAuthStateChanged(async (user) => {
                 document.getElementById("submit-form").click();
             }
 
+            document.getElementById("previous-btn").onclick = () => {
+                if(i != 0) {
+                    ls[i].classList.replace("visible", "hidden");
+                    ls[i-1].classList.replace("hidden", "visible");
+                    i--;
+                    if(i==0) {
+                        document.getElementById("previous-btn").setAttribute("disabled", "disabled");
+                    }
+                }
+            }
+
             document.getElementById("submit-form").onclick = async () => {
+                if(f.layout && f.layout === "multi-page" && i!=inps.length) {
+                    ls[i-1].classList.replace("visible", "hidden");
+                    ls[i].classList.replace("hidden", "visible");
+                    i++;
+                    document.getElementById("previous-btn").removeAttribute("disabled");
+                    if(i==ls.length) {
+                        document.getElementById("submit-form").innerHTML = `<i class=" fi fi-sr-check"></i>Submit`;
+                    }
+                    return;
+                }
                 let fields = inps.map(i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
                     response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
-                    marks: compare(i.response, i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value), i.props.marks)
+                    marks: compare(i.response, i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value), i.props.marks, {...i.props, question: document.getElementById(i.props.id).querySelector(".question").innerText }, f.ai)
                 }));
 
                 await addDoc(collection(d, "quizzes", formid, "responses"), {
@@ -361,7 +427,7 @@ auth.onAuthStateChanged(async (user) => {
             let d = doc(firestore, "classrooms", classid);
 
             let classData = await getCurrentClassMember(d, user);
-            console.log(classData)
+            
             if (!classData || (classData.currentMem?.role !== "teacher" && classData.class.creator !== user.email)) {
                 console.log("hi")
                 return;
@@ -375,6 +441,10 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
             window.inps = inps;
+
+            if(!classData.class.ai_eval) {
+                document.getElementById("ai-eval").setAttribute("disabled");
+            }
 
             document.getElementById("qname").innerText = f.name ?? "Quiz";
             document.getElementById("qdesc").innerText = f.description ?? "";
@@ -444,10 +514,20 @@ auth.onAuthStateChanged(async (user) => {
             }
 
             let deadline = null;
+            let layout = null;
+            let ai = null;
+
+            document.getElementById("datetime").value = f.deadline ?? "";
+            if(f.layout) {
+                document.getElementById("pages").querySelector(`option[value="${f.layout}"]`).setAttribute("selected", "selected");
+            }
+            document.getElementById("ai-eval").checked = f.ai;
 
             document.getElementById("add-mem").onclick = async () => {
                 let val = document.getElementById("datetime").value;
                 deadline = Date.parse(val);
+                layout = document.getElementById("pages").value;
+                ai = document.getElementById("ai-eval").checked;
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
@@ -465,6 +545,8 @@ auth.onAuthStateChanged(async (user) => {
                 let setdata = {};
 
                 if(deadline) setdata.deadline = deadline;
+                if(layout) setdata.layout = layout;
+                if(ai) setdata.ai = ai;
 
                 await updateDoc(doc(d, "quizzes", formid), {
                     name: document.getElementById("qname").innerText,
@@ -766,8 +848,48 @@ function formatTimestamp(timestamp) {
     return `${day}/${month}/${year}`;
 }
 
-function compare(res, ans, marks) {
-    return levenshteinDistance(ans, res) * marks;
+async function compare(res, ans, marks, details, ai=false) {
+    if(details.type === "radio") {
+        if(ans === res) {
+            return marks;
+        } else {
+            return 0;
+        }
+    } else if(details.type === "text") {
+        const maxLen = Math.max(ans.length, res.length);
+        const distance = levenshteinDistance(ans.toLowerCase(), res.toLowerCase());
+        const similarity = 1 - (distance / maxLen);
+        return similarity * marks;
+    } else if(details.type === "textarea") {
+        if(ai) {
+            let result = await fetch("/evaluate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: details.question,
+                    answer: ans,
+                    response: res,
+                    marks: marks
+                })
+            });
+            result = await result.json();
+            if(result.status === 200) {
+                return Number(result.content);
+            } else {
+                const maxLen = Math.max(ans.length, res.length);
+                const distance = levenshteinDistance(ans.toLowerCase(), res.toLowerCase());
+                const similarity = 1 - (distance / maxLen);
+                return similarity * marks;   
+            }
+        } else {
+            const maxLen = Math.max(ans.length, res.length);
+            const distance = levenshteinDistance(ans.toLowerCase(), res.toLowerCase());
+            const similarity = 1 - (distance / maxLen);
+            return similarity * marks;
+        }
+    }
 }
 
 function levenshteinDistance(a, b) {

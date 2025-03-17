@@ -336,26 +336,31 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [], force = 0;
 
-            if(f.timer && f.timer > 0) {
-                document.getElementById("timer-win").classList.replace("hidden", "flex");
+            if (f.timer && f.timer > 0) {
+                document.getElementById("timer-win")?.classList.replace("hidden", "flex"); // Ensure element exists
                 let seconds = f.timer;
-                let time = secondsToHMS(seconds);
-                document.getElementById("clock").innerText = time.map(unit => String(unit).padStart(2, "0")).join(":");
-                let interval = setInterval(() => {
-                    seconds--;
+            
+                function updateClock() {
                     let time = secondsToHMS(seconds);
                     document.getElementById("clock").innerText = time.map(unit => String(unit).padStart(2, "0")).join(":");
-                    if(seconds === 0) {
-                        stopInterval();
-                        force = 1;
-                        document.getElementById("submit-form").click();
-                    }
-                }, 1000);
-
-                function stopInterval() {
-                    clearInterval(interval);
                 }
-            }
+            
+                updateClock(); // Set initial time immediately
+            
+                let interval = setInterval(() => {
+                    seconds--;
+            
+                    if (seconds <= 0) { // Prevent negative countdown
+                        clearInterval(interval);
+                        force = 1;
+                        document.getElementById("clock").innerText = "00:00:00"; // Ensure clock shows zero
+                        document.getElementById("submit-form")?.click(); // Submit form
+                        return; // Stop execution
+                    }
+            
+                    updateClock();
+                }, 1000);
+            }            
 
             document.getElementById("qname").innerText = f.name ?? "Quiz";
             document.getElementById("qdesc").innerText = f.description ?? "";

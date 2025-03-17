@@ -359,15 +359,13 @@ auth.onAuthStateChanged(async (user) => {
             let ls = document.getElementById("questions").children;
             let i=0;
 
-            if(f.layout && f.layout === "multi-page") {
-                for (let i = 1; i < ls.length; i++) {
-                    ls[i].classList.add("hidden");
+            if (f.layout && f.layout === "multi-page") {
+                for (let j = 1; j < ls.length; j++) {
+                    ls[j].classList.add("hidden");
                 }
                 ls[0].classList.add("visible");
-                i++;
-                document.getElementById("submit-form").innerHTML = `<i class=" fi fi-sr-angle-right"></i>Next`;
-
-                document.getElementById("previous-btn").removeAttribute("disabled");
+                document.getElementById("submit-form").innerHTML = `<i class="fi fi-sr-angle-right"></i> Next`;
+                document.getElementById("previous-btn").setAttribute("disabled", "disabled");
             }
 
             document.onclick = () => {
@@ -380,43 +378,71 @@ auth.onAuthStateChanged(async (user) => {
             }
 
             document.getElementById("previous-btn").onclick = () => {
-                if(i != 0) {
+                if (i > 0) {
                     ls[i].classList.replace("visible", "hidden");
-                    ls[i-1].classList.replace("hidden", "visible");
+                    ls[i - 1].classList.replace("hidden", "visible");
                     i--;
-                    if(i==0) {
+            
+                    document.getElementById("submit-form").innerHTML = `<i class="fi fi-sr-angle-right"></i> Next`;
+                    
+                    if (i === 0) {
                         document.getElementById("previous-btn").setAttribute("disabled", "disabled");
                     }
                 }
-            }
+            };
 
             document.getElementById("submit-form").onclick = async () => {
-                if(f.layout && f.layout === "multi-page" && i!=inps.length) {
-                    ls[i-1].classList.replace("visible", "hidden");
-                    ls[i].classList.replace("hidden", "visible");
-                    i++;
-                    document.getElementById("previous-btn").removeAttribute("disabled");
-                    if(i==ls.length) {
-                        document.getElementById("submit-form").innerHTML = `<i class=" fi fi-sr-check"></i>Submit`;
+                if (f.layout && f.layout === "multi-page") {
+                    if (i < ls.length - 1) {
+                        ls[i].classList.replace("visible", "hidden");
+                        ls[i + 1].classList.replace("hidden", "visible");
+                        i++;
+            
+                        document.getElementById("previous-btn").removeAttribute("disabled");
+            
+                        if (i === ls.length - 1) {
+                            document.getElementById("submit-form").innerHTML = `<i class="fi fi-sr-check"></i> Submit`;
+                        }
+                    } else {
+                        await submitForm(); // Calls the function to submit data
                     }
                     return;
                 }
+            
+                await submitForm();
+            };
+            
+            async function submitForm() {
                 let fields = inps.map(i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
-                    response: i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
-                    marks: compare(i.response, i.props.type === "textarea" ?  document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText : (i.props.type === "radio" ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value), i.props.marks, {...i.props, question: document.getElementById(i.props.id).querySelector(".question").innerText }, f.ai)
+                    response: i.props.type === "textarea" 
+                        ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
+                        : (i.props.type === "radio" 
+                            ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText 
+                            : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
+                    marks: compare(
+                        i.response,
+                        i.props.type === "textarea" 
+                            ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
+                            : (i.props.type === "radio" 
+                                ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText 
+                                : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
+                        i.props.marks, 
+                        { ...i.props, question: document.getElementById(i.props.id).querySelector(".question").innerText }, 
+                        f.ai
+                    )
                 }));
-
+            
                 await addDoc(collection(d, "quizzes", formid, "responses"), {
                     creator: user.email,
                     fields: fields,
                     createdAt: serverTimestamp()
                 });
-
+            
                 await updateDoc(doc(d, "quizzes", formid), {
                     responses: arrayUnion(user.email)
                 });
-
+            
                 window.open(`/classroom/${classid}?section=quizzes`, "_self");
             }
             return;

@@ -321,12 +321,12 @@ auth.onAuthStateChanged(async (user) => {
         if(location.pathname.includes("/quiz/") && !location.pathname.endsWith("responses")) {
             document.addEventListener("fullscreenchange", () => {
                 if (document.fullscreenElement) {
-                    document.body.classList.add("pt-16"); // Add padding in fullscreen mode
+                    document.getElementById("timer-win").classList.replace("top-0", "top-10"); // Add padding in fullscreen mode
                 } else {
-                    document.body.classList.remove("pt-16"); // Remove padding when exiting fullscreen
+                    document.getElementById("timer-win").classList.replace("top-10", "top-0"); // Remove padding when exiting fullscreen
                 }
             });
-            
+
             const pathSegments = window.location.pathname.split("/");
             const classid = pathSegments[2];
             let d = doc(firestore, "classrooms", classid);

@@ -3,11 +3,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aula</title>
-    <link rel="stylesheet" href="./css/output.css">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/uicons-solid-rounded/css/uicons-solid-rounded.css">
-    <link rel="stylesheet" href="../css/uicons-bold-rounded/css/uicons-bold-rounded.css">
-    <link rel="shortcut icon" href="../images/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/output.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/uicons-solid-rounded/css/uicons-solid-rounded.css">
+    <link rel="stylesheet" href="/css/uicons-bold-rounded/css/uicons-bold-rounded.css">
+    <link rel="shortcut icon" href="/images/logo.png" type="image/png">
     <meta id="scheme" content="0xffd8f999">
 </head>
 <body class=" bg-lime-100 text-lime-800">
@@ -84,6 +84,32 @@
             <i class=" fi fi-sr-plus text-lg"></i>
         </button>
     </div>
-    <script type="module" src="./js/account.js"></script>
+    <script type="module">
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+                
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                if(confirm("An update is available. Update?")) {
+                                    window.location.reload();
+                                }
+                            } else {
+                                console.log('Content is cached for offline use.');
+                            }
+                        }
+                    };
+                };
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
+    </script>
+    <script type="module" src="/js/account.js"></script>
 </body>
 </html>

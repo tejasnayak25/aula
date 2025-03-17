@@ -76,6 +76,32 @@
         <i id="settings-btn" class=" fi fi-sr-settings text-lime-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-lime-600 text-2xl"></i>
         <i id="results-btn" class=" fi fi-sr-chart-simple-horizontal text-lime-500 btn btn-ghost border-0 p-0 shadow-none hover:bg-transparent hover:text-lime-600 text-2xl"></i>
     </div>
+    <script type="module">
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+                
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                if(confirm("An update is available. Update?")) {
+                                    window.location.reload();
+                                }
+                            } else {
+                                console.log('Content is cached for offline use.');
+                            }
+                        }
+                    };
+                };
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
+    </script>
     <script src="/js/utils.js"></script>
     <script type="module" src="/js/account.js"></script>
 </body>

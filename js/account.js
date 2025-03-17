@@ -345,7 +345,7 @@ auth.onAuthStateChanged(async (user) => {
                     seconds--;
                     let time = secondsToHMS(seconds);
                     document.getElementById("clock").innerText = time.map(unit => String(unit).padStart(2, "0")).join(":");
-                    if(time === 0) {
+                    if(seconds === 0) {
                         stopInterval();
                         force = 1;
                         document.getElementById("submit-form").click();
@@ -575,7 +575,7 @@ auth.onAuthStateChanged(async (user) => {
             let deadline = null;
             let layout = null;
             let ai = null;
-            let timer = 0;
+            let timer = f.timer ?? 0;
 
             document.getElementById("datetime").value = f.deadline ?? "";
             if(f.layout) {

@@ -326,6 +326,10 @@ auth.onAuthStateChanged(async (user) => {
 
             let inps = [];
 
+            if(f.timer && f.timer > 0) {
+
+            }
+
             document.getElementById("qname").innerText = f.name ?? "Quiz";
             document.getElementById("qdesc").innerText = f.description ?? "";
 
@@ -411,14 +415,14 @@ auth.onAuthStateChanged(async (user) => {
             };
             
             async function submitForm() {
-                let fields = inps.map(i => ({
+                let fields = inps.map(async i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
                     response: i.props.type === "textarea" 
                         ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
                         : (i.props.type === "radio" 
                             ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText 
                             : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
-                    marks: compare(
+                    marks: await compare(
                         i.response,
                         i.props.type === "textarea" 
                             ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 

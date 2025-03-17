@@ -22,6 +22,9 @@
             <button id="submit-form" class=" flex justify-center font-semibold  btn btn-success rounded-full  gap-2 items-center px-10"><i class=" fi fi-sr-check"></i>Submit</button>
         </div>
     </div>
+    <div id="timer-win" class=" absolute top-0 w-full pointer-events-none hidden justify-center">
+        <p id="clock" class=" p-3 rounded-b-md border-2 border-t-0 text-xl shadow border-lime-300 bg-lime-200">00:00:00</p>
+    </div>
     <p class=" text-sm text-lime-800 text-center p-3">Powered By AULA</p>
     <script type="module">
         if ('serviceWorker' in navigator) {

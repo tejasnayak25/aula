@@ -192,12 +192,17 @@ auth.onAuthStateChanged(async (user) => {
             let deadline = null;
             let layout = null;
             let ai = null;
+            let timer = 0;
 
             document.getElementById("add-mem").onclick = async () => {
                 let val = document.getElementById("datetime").value;
                 deadline = Date.parse(val);
                 layout = document.getElementById("pages").value;
                 ai = document.getElementById("ai-eval").checked;
+                let timelim = document.getElementById("timer").value;
+                timelim = timelim.split(":").map(i=>Number(i));
+                timer = timelim[0]*60*60 + timelim[1]*60 + timelim[2];
+
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
@@ -217,6 +222,7 @@ auth.onAuthStateChanged(async (user) => {
                 if(deadline) setdata.deadline = deadline;
                 if(layout) setdata.layout = layout;
                 if(ai) setdata.ai = ai;
+                if(timer) setdata.timer = timer;
 
                 await addDoc(collection(d, "quizzes"), {
                     name: document.getElementById("qname").innerText,
@@ -324,10 +330,27 @@ auth.onAuthStateChanged(async (user) => {
 
             f = { id: f.id, ...f.data() };
 
-            let inps = [];
+            let inps = [], force = 0;
 
             if(f.timer && f.timer > 0) {
+                document.getElementById("timer-win").classList.replace("hidden", "flex");
+                let seconds = f.timer;
+                let time = secondsToHMS(seconds);
+                document.getElementById("clock").innerText = time.map(unit => String(unit).padStart(2, "0")).join(":");
+                let interval = setInterval(() => {
+                    seconds--;
+                    let time = secondsToHMS(seconds);
+                    document.getElementById("clock").innerText = time.map(unit => String(unit).padStart(2, "0")).join(":");
+                    if(time === 0) {
+                        stopInterval();
+                        force = 1;
+                        document.getElementById("submit-form").click();
+                    }
+                }, 1000);
 
+                function stopInterval() {
+                    clearInterval(interval);
+                }
             }
 
             document.getElementById("qname").innerText = f.name ?? "Quiz";
@@ -394,6 +417,10 @@ auth.onAuthStateChanged(async (user) => {
             };
 
             document.getElementById("submit-form").onclick = async () => {
+                if(force === 1) {
+                    await submitForm();
+                    return;
+                }
                 if (f.layout && f.layout === "multi-page") {
                     if (i < ls.length - 1) {
                         ls[i].classList.replace("visible", "hidden");
@@ -544,6 +571,7 @@ auth.onAuthStateChanged(async (user) => {
             let deadline = null;
             let layout = null;
             let ai = null;
+            let timer = 0;
 
             document.getElementById("datetime").value = f.deadline ?? "";
             if(f.layout) {
@@ -551,11 +579,18 @@ auth.onAuthStateChanged(async (user) => {
             }
             document.getElementById("ai-eval").checked = f.ai;
 
+            if(f.timer) {
+                document.getElementById("timer").value = secondsToHMS(f.timer).map(unit => String(unit).padStart(2, "0")).join(":");
+            }
+
             document.getElementById("add-mem").onclick = async () => {
                 let val = document.getElementById("datetime").value;
                 deadline = Date.parse(val);
                 layout = document.getElementById("pages").value;
                 ai = document.getElementById("ai-eval").checked;
+                let timelim = document.getElementById("timer").value;
+                timelim = timelim.split(":").map(i=>Number(i));
+                timer = timelim[0]*60*60 + timelim[1]*60 + timelim[2];
                 document.getElementById("add-mem-win").classList.replace("flex", "hidden");
             }
 
@@ -575,6 +610,7 @@ auth.onAuthStateChanged(async (user) => {
                 if(deadline) setdata.deadline = deadline;
                 if(layout) setdata.layout = layout;
                 if(ai) setdata.ai = ai;
+                if(timer) setdata.timer = timer;
 
                 await updateDoc(doc(d, "quizzes", formid), {
                     name: document.getElementById("qname").innerText,
@@ -967,4 +1003,11 @@ function getCurrentClassMember(d, user) {
             resolve(null);
         });
     });
+}
+
+function secondsToHMS(seconds) {
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+    return [h, m, s];
 }

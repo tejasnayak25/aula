@@ -250,6 +250,10 @@ auth.onAuthStateChanged(async (user) => {
                 return;
             }              
 
+            if(classData.currentMem?.role === "student") {
+                document.getElementById("download-csv").classList.replace("flex", "hidden");
+            }
+
             let formid = pathSegments[4];
 
             let f = await getDoc(doc(d, "quizzes", formid));

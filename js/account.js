@@ -446,7 +446,7 @@ auth.onAuthStateChanged(async (user) => {
             };
             
             async function submitForm() {
-                let fields = inps.map(async i => ({
+                let fields = await Promise.all(inps.map(async i => ({
                     question: document.getElementById(i.props.id).querySelector(".question").innerText,
                     response: i.props.type === "textarea" 
                         ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
@@ -464,7 +464,7 @@ auth.onAuthStateChanged(async (user) => {
                         { ...i.props, question: document.getElementById(i.props.id).querySelector(".question").innerText }, 
                         f.ai
                     )
-                }));
+                })));                
             
                 await addDoc(collection(d, "quizzes", formid, "responses"), {
                     creator: user.email,

@@ -773,6 +773,17 @@ auth.onAuthStateChanged(async (user) => {
                                 inv_req: req.checked
                             });
                         }
+
+                        let aieval = document.getElementById("settings").querySelector("#ai-eval");
+                        if(data.ai_eval) {
+                            aieval.checked = data.ai_eval;
+                        }
+
+                        aieval.onchange = async () => {
+                            await updateDoc(d, {
+                                ai_eval: aieval.checked
+                            });
+                        }
                     } else {
                         document.getElementById("leave-class").onclick = async () => {
                             if(confirm(`Are you sure you want to leave the classroom '${data.name}' ?`)) {

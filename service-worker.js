@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aula-cache-v1.0.0'; // Update cache name to reflect version change
+const CACHE_NAME = 'aula-cache-v1.0.1'; // Update cache name to reflect version change
 const urlsToCache = [
     '/', 
     '/css/input.css', '/css/output.css', '/css/style.css',

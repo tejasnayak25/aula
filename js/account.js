@@ -221,7 +221,7 @@ auth.onAuthStateChanged(async (user) => {
 
                 if(deadline) setdata.deadline = deadline;
                 if(layout) setdata.layout = layout;
-                if(ai) setdata.ai = ai;
+                if(ai) setdata.ai_eval = ai;
                 if(timer) setdata.timer = timer;
 
                 await addDoc(collection(d, "quizzes"), {
@@ -459,25 +459,55 @@ auth.onAuthStateChanged(async (user) => {
             };
             
             async function submitForm() {
-                let fields = await Promise.all(inps.map(async i => ({
-                    question: document.getElementById(i.props.id).querySelector(".question").innerText,
-                    response: i.props.type === "textarea" 
-                        ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
-                        : (i.props.type === "radio" 
-                            ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText 
-                            : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
-                    marks: await compare(
-                        i.response,
-                        i.props.type === "textarea" 
-                            ? document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).innerText 
-                            : (i.props.type === "radio" 
-                                ? document.getElementById(i.props.id).querySelector(`.data input[name="${i.props.id}-response"]:checked`)?.nextElementSibling.innerText 
-                                : document.getElementById(i.props.id).querySelector(`#${i.props.id}-response`).value),
-                        i.props.marks, 
-                        { ...i.props, question: document.getElementById(i.props.id).querySelector(".question").innerText }, 
-                        f.ai
-                    )
-                })));                
+                let fields = await Promise.all(inps.map(async (i, index) => {
+                    const container = document.getElementById(i.props.id);
+                    const question = container.querySelector(".question").innerText;
+                
+                    let responseEl;
+                    if (i.props.type === "textarea") {
+                        responseEl = container.querySelector(`#${i.props.id}-response`).innerText;
+                    } else if (i.props.type === "radio") {
+                        const checkedRadio = container.querySelector(`.data input[name="${i.props.id}-response"]:checked`);
+                        responseEl = checkedRadio?.nextElementSibling.innerText;
+                    } else {
+                        responseEl = container.querySelector(`#${i.props.id}-response`).value;
+                    }
+                
+                    // const marks = await compare(
+                    //     i.response,
+                    //     responseEl,
+                    //     i.props.marks,
+                    //     { ...i.props, question },
+                    //     f.ai
+                    // );
+                
+                    return { question, answer: i.response, response: responseEl, marks: i.props.marks, props: i.props, qno: index + 1 };
+                }));         
+                
+                if(f.ai_eval) {
+                    const data = fields.filter(i => i.marks !== 0).map(i=>({ question: i.question, answer: i.answer, response: i.response, marks: i.marks, qno: i.qno }));
+                    const result = await evaluate(data);
+
+                    const markMap = new Map(result.map(mark => [mark.qno, mark.marks]));
+
+                    fields.forEach(field => {
+                        if (markMap.has(field.qno)) {
+                            field.marks = markMap.get(field.qno);
+                            delete field.props;
+                        }
+                    });
+                } else {
+                    for (const field of fields) {
+                        field.marks = await compare(
+                            field.response,
+                            field.answer,
+                            field.marks,
+                            { ...field.props, question: field.question },
+                            false
+                        );
+                        delete field.props;
+                    }                    
+                }
             
                 await addDoc(collection(d, "quizzes", formid, "responses"), {
                     creator: user.email,
@@ -626,7 +656,7 @@ auth.onAuthStateChanged(async (user) => {
 
                 if(deadline) setdata.deadline = deadline;
                 if(layout) setdata.layout = layout;
-                if(ai) setdata.ai = ai;
+                if(ai) setdata.ai_eval = ai;
                 if(timer) setdata.timer = timer;
 
                 await updateDoc(doc(d, "quizzes", formid), {
@@ -857,7 +887,7 @@ auth.onAuthStateChanged(async (user) => {
                             const newUrl = `${location.origin}/classroom/${classid}/new-quiz`;
                             window.open(newUrl, "_self");
                         }
-                        document.getElementById("quizzesHolder").querySelector(".teach").classList.replace("hidden", "flex");
+                        document.getElementById("quizzesHolder").querySelector(".teach").classList.replace("hidden", "grid");
                     } else {
                         
                         document.getElementById("quizzesHolder").querySelector(".student").classList.replace("hidden", "flex");
@@ -871,19 +901,19 @@ auth.onAuthStateChanged(async (user) => {
 
                         quiz.forEach(u => {
                             let div = document.createElement("div");
-                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full transition-all h-70 flex flex-col justify-center items-center gap-2";
+                            div.className = " border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-full transition-all h-70 flex flex-col justify-center items-center gap-2";
                             let date = u.deadline ? formatTimestamp(u.deadline) : null;
 
                             let attemped = u.responses ? u.responses.find(i => i===user.email) : false;
                             div.innerHTML= `
                                 <p class=" border-b border-lime-900 pb-4 mb-2 w-[90%]">${u.name ?? "Quiz 1"}</p>
-                                <p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">${date ?? ""}</span></p>
+                                ${ date ? `<p class="w-full border-b-0 border-lime-900 text-red-500 pb-4 mb-2">Deadline: <span id="deadline">${date}</span></p>` : "" }
                                 <a href="/classroom/${classid}/quiz/${u.id}" ${attemped ? "disabled" : ""} ${u.deadline && Date.now() > u.deadline ? "disabled" : ""} id="edit-quiz-btn" class=" ${(u.deadline && Date.now() > u.deadline) || attemped ? "hidden" : "flex"} justify-center font-semibold  btn btn-success rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</a>
                                 <button class=" ${(u.deadline && Date.now() > u.deadline) || attemped ? "flex" : "hidden"} justify-center font-semibold  btn btn-error rounded-full gap-2 items-center px-10"><i class=" fi fi-sr-pen-nib"></i>${u.deadline && Date.now() > u.deadline ? "Ended" : `Attempt${attemped ? "ed" : ""}`}</button>
                             `;
 
                             if (u.creator === user.email && (data.creator === user.email || currentMem.role === "teacher")) {
-                                div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 md:w-70 w-full transition-all h-32 flex flex-col justify-center items-center gap-2";
+                                div.className = "border-2 border-lime-900 rounded-md bg-lime-100 text-lime-900 btn btn-ghost hover:bg-transparent hover:shadow-xl shadow-lime-300 w-full transition-all h-32 flex flex-col justify-center items-center gap-2";
                                 div.innerHTML = `
                                     <p class="w-full border-b border-lime-900 pb-4 mb-2">${u.name ?? "Quiz 1"}</p>
                                     <div class="flex justify-center w-full gap-3">
@@ -1038,4 +1068,29 @@ function secondsToHMS(seconds) {
     let m = Math.floor((seconds % 3600) / 60);
     let s = seconds % 60;
     return [h, m, s];
+}
+
+function evaluate(data) {
+    return new Promise(async (resolve, reject) => {
+        const idToken = await getIdToken(auth.currentUser);
+        fetch("/ai/evaluate", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`, // Include the ID token in the Authorization header
+            },
+            cache: "no-store",
+            body: JSON.stringify(data)
+        }).then(res => res.json())
+        .then(res => {
+            if(res.status === 200) {
+                resolve(res.content);
+            } else {
+                resolve([]);
+            }
+        })
+        .catch(e => {
+            resolve([]);
+        })
+    });
 }

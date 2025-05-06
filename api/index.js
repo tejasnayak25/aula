@@ -1,12 +1,9 @@
 let express = require("express");
 let app = express();
 let path = require("path");
-let { GoogleGenerativeAI } = require("@google/generative-ai");
+let { GoogleGenAI, Type } = require("@google/genai");
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API??"");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", 
-    systemInstruction: "given question, answer, marks and response, evaluate the response and return appropriate marks"
-});
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API });
 
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, "..")));
@@ -14,8 +11,38 @@ app.use(express.json());
 
 async function generate(prompt) {
     try{
-        const result = await model.generateContent(prompt);
-        let text = result.response.text();
+        const result = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: prompt,
+            config: {
+              systemInstruction: "Given question, answer (actual), marks, and response (student), evaluate the response and return appropriate marks.",
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'object',
+                required: ['result'],
+                properties: {
+                  result: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      required: ['qno', 'marks'],
+                      properties: {
+                        qno: {
+                          type: 'number',
+                          description: 'Question number',
+                        },
+                        marks: {
+                          type: 'number',
+                          description: 'Marks awarded',
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        });          
+        let text = result.text;
         return text;
     } catch (e) {
         console.log(e);
@@ -68,15 +95,15 @@ app.route("/classroom/:id/edit-quiz/:q")
     res.sendFile(path.join(__dirname, "html", "form_edit.html"));
 });
 
-app.route("/evaluate")
+app.route("/ai/evaluate")
 .post(async (req, res) => {
     let body = req.body;
 
-    let rep = await generate(body);
+    let rep = await generate(JSON.stringify(body));
 
     res.json({
         status: rep ? 200 : 500,
-        content: rep
+        content: (JSON.parse(rep))?.result
     });
 });
 

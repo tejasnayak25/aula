@@ -207,7 +207,7 @@ class Radio {
                 }
 
                 host.querySelector("#inp-marks").onchange = () => {
-                    div.props.marks = host.querySelector("#inp-marks").value;
+                    div.props.marks = Number(host.querySelector("#inp-marks").value);
                 }
 
                 host.querySelector("#delete").onclick = () => {

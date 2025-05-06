@@ -5,6 +5,7 @@ const urlsToCache = [
     '/css/uicons-solid-rounded/css/uicons-solid-rounded.css', '/css/uicons-solid-rounded/webfonts/uicons-solid-rounded.woff2', '/css/uicons-solid-rounded/webfonts/uicons-solid-rounded.woff', '/css/uicons-solid-rounded/webfonts/uicons-solid-rounded.eot',
     '/css/uicons-bold-rounded/css/uicons-bold-rounded.css', '/css/uicons-bold-rounded/webfonts/uicons-bold-rounded.woff2', '/css/uicons-bold-rounded/webfonts/uicons-bold-rounded.woff', '/css/uicons-bold-rounded/webfonts/uicons-bold-rounded.eot',
     "/images/logo.png",
+    "https://cdn.jsdelivr.net/npm/disable-devtool",
     'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js',
     'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js',
     'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js',
